@@ -37,7 +37,9 @@
     "test:ci-contract": "node --test tests/ci-contract.test.mjs",
     "test:risk-lab": "node --test tests/risk-lab-page.test.mjs",
     "test:payments": "node tests/payments.test.mjs",
-    "payments:reconcile": "node scripts/reconcile-payments.mjs --run"
+    "payments:reconcile": "node scripts/reconcile-payments.mjs --run",
+    "test:premium": "node tests/premium-subscriptions.test.mjs",
+    "premium:reconcile": "node scripts/reconcile-premium.mjs --run"
   },
   "dependencies": {
     "@prisma/client": "^6.10.0",

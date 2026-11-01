@@ -109,3 +109,15 @@ The `db:preflight` script checks key schema invariants without connecting to a d
 - `lib/provider-webhook-policy.mjs` defines admission checks for verified signatures, timestamp freshness, allowlisted event types and persisted idempotency state. It does not perform cryptographic verification, store events, or execute provider actions. See `docs/PROVIDER-WEBHOOK-INTEGRATION-CONTRACT.md`.
 - `lib/release-gate-policy.mjs` provides fail-closed release and live-capability gate decisions. It does not deploy code or enable live services. See `docs/RELEASE-GATES-AND-CAPABILITY-FLAGS.md`.
 - Run `npm run test:webhook-policy` and `npm run test:release-gates`, or `npm run test:policy` for the full pure-policy suite.
+
+## Recovered commercial billing continuation
+
+The owner-confirmed first fiat product is **ShieldChain Financial Premium Software Access**
+(educational tools, crypto calculators and premium dashboard features), using Stripe in AUD.
+Price and billing interval are not configured, and provider permission remains unverified.
+
+See [Premium billing implementation and activation requirements](docs/PREMIUM-SOFTWARE-BILLING.md).
+The working code includes recurring hosted checkout, customer billing/portal, invoice/receipt
+records, full invoice refund operations and server-checked premium access. Run
+`npm run test:premium` for fixture-based tests. No live transaction has been verified.
+SF Crypto Payments remains a separate future integration with no access to this fiat flow.

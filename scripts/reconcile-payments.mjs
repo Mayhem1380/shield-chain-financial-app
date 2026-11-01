@@ -1,4 +1,4 @@
-import { reconcilePaymentBatch } from '../lib/payments/runtime.mjs';
+import { reconcilePaymentBatch, disconnectPaymentDb } from '../lib/payments/runtime.mjs';
 
 if (process.argv[2] !== '--run') {
   console.error('Requires --run and securely injected provider/database configuration. Reads Stripe and updates payment records.');
@@ -9,5 +9,5 @@ if (process.argv[2] !== '--run') {
   } catch {
     console.error('Payment reconciliation failed. Check credentials, approvals, schema and database availability.');
     process.exitCode = 1;
-  }
+  } finally { await disconnectPaymentDb(); }
 }

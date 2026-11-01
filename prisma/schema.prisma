@@ -49,6 +49,8 @@ model User {
   kycCases          KycCase[]
   withdrawalRequests WithdrawalRequest[]
   paymentOrders PaymentOrder[]
+  billingAccounts BillingAccount[]
+  premiumSubscriptions PremiumSubscription[]
   billingRole BillingRole @default(CUSTOMER)
 
   @@unique([identityProvider, providerSubject])
@@ -290,12 +292,108 @@ model PaymentProduct {
   priceId String
   currency String @default("aud")
   amountMinor Int
+  billingMode String @default("ONE_TIME")
+  interval String?
+  intervalCount Int?
+  termsVersion String?
   live Boolean @default(false)
   enabled Boolean @default(false)
   providerApprovalReference String?
   legalApprovalReference String?
   approvedUntil DateTime?
   orders PaymentOrder[]
+  premiumSubscriptions PremiumSubscription[]
+}
+
+// Stripe customer identity is server-owned, isolated by account and mode.
+model BillingAccount {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+  live Boolean
+  providerCustomerId String? @unique
+  createdAt DateTime @default(now())
+  subscriptions PremiumSubscription[]
+  @@unique([userId, live])
+}
+
+model PremiumSubscription {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+  accountId String
+  account BillingAccount @relation(fields: [accountId], references: [id], onDelete: Restrict)
+  productCode String
+  product PaymentProduct @relation(fields: [productCode], references: [code], onDelete: Restrict)
+  requestKey String @unique
+  // One outstanding/active subscription per user and mode. Released only on terminal state.
+  activeSlot String? @unique
+  priceId String
+  amountMinor Int
+  currency String
+  interval String
+  intervalCount Int
+  termsVersion String
+  live Boolean
+  checkoutSessionId String? @unique
+  checkoutUrl String?
+  providerSubscriptionId String? @unique
+  providerStatus String @default("creating")
+  cancelAtPeriodEnd Boolean @default(false)
+  currentInvoiceId String?
+  accessUntil DateTime?
+  riskHold Boolean @default(false)
+  lastReconciledAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  invoices BillingInvoice[]
+  events PremiumBillingEvent[]
+  @@index([userId, live])
+  @@index([lastReconciledAt])
+}
+
+model BillingInvoice {
+  id String @id @default(cuid())
+  subscriptionId String
+  subscription PremiumSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Restrict)
+  providerInvoiceId String @unique
+  paymentIntentId String? @unique
+  amountMinor Int
+  currency String
+  status String
+  periodStart DateTime?
+  periodEnd DateTime?
+  refundedMinor Int @default(0)
+  riskHold Boolean @default(false)
+  receiptUrl String?
+  hostedInvoiceUrl String?
+  paidAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  refund BillingInvoiceRefund?
+  @@index([subscriptionId, createdAt])
+}
+
+model BillingInvoiceRefund {
+  id String @id @default(cuid())
+  invoiceId String @unique
+  invoice BillingInvoice @relation(fields: [invoiceId], references: [id], onDelete: Restrict)
+  requestedBy String
+  reason String
+  providerRefundId String? @unique
+  status PaymentRefundStatus @default(REQUESTED)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PremiumBillingEvent {
+  eventId String @id
+  subscriptionId String
+  subscription PremiumSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Restrict)
+  eventType String
+  bodyHash String
+  receivedAt DateTime @default(now())
+  @@index([subscriptionId, receivedAt])
 }
 
 model PaymentOrder {
