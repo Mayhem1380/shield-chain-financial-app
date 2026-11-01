@@ -48,6 +48,8 @@ model User {
   feedbackItems     FeedbackItem[]
   kycCases          KycCase[]
   withdrawalRequests WithdrawalRequest[]
+  paymentOrders PaymentOrder[]
+  billingRole BillingRole @default(CUSTOMER)
 
   @@unique([identityProvider, providerSubject])
 
@@ -67,6 +69,8 @@ model AuthSession {
   lastSeenAt    DateTime?
   revokedAt     DateTime?
   userAgentHash String?
+  // Set only by a trusted identity adapter after an actual MFA challenge.
+  mfaVerifiedAt DateTime?
 
   @@index([userId, expiresAt])
   @@index([expiresAt, revokedAt])
@@ -248,4 +252,110 @@ model WithdrawalRequest {
 
   @@index([userId, status, requestedAt])
   @@index([status, requestedAt])
+}
+
+// Merchant purchases only. This table is not an exchange or custody ledger.
+enum BillingRole {
+  CUSTOMER
+  REFUNDS
+  ADMIN
+}
+
+enum PaymentPurpose {
+  SOFTWARE_ACCESS
+  EDUCATION_SERVICE
+}
+
+enum PaymentOrderStatus {
+  CREATING
+  CHECKOUT
+  EXPIRED
+  PAID
+  PARTIALLY_REFUNDED
+  REFUNDED
+  REVIEW
+}
+
+enum PaymentRefundStatus {
+  REQUESTED
+  PENDING
+  SUCCEEDED
+  FAILED_REVIEW
+}
+
+model PaymentProduct {
+  code String @id
+  title String
+  purpose PaymentPurpose
+  priceId String
+  currency String @default("aud")
+  amountMinor Int
+  live Boolean @default(false)
+  enabled Boolean @default(false)
+  providerApprovalReference String?
+  legalApprovalReference String?
+  approvedUntil DateTime?
+  orders PaymentOrder[]
+}
+
+model PaymentOrder {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+  productCode String
+  product PaymentProduct @relation(fields: [productCode], references: [code], onDelete: Restrict)
+  requestKey String @unique
+  priceId String
+  amountMinor Int
+  currency String
+  live Boolean
+  status PaymentOrderStatus @default(CREATING)
+  checkoutSessionId String? @unique
+  checkoutUrl String?
+  paymentIntentId String? @unique
+  providerCustomerId String?
+  refundedMinor Int @default(0)
+  riskHold Boolean @default(false)
+  receiptUrl String?
+  lastReconciledAt DateTime?
+  paidAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  refund PaymentRefund?
+  events PaymentEvent[]
+  @@index([userId, createdAt])
+  @@index([status, lastReconciledAt])
+}
+
+// Durable reservation, one full refund per order; retries use the same provider key.
+model PaymentRefund {
+  id String @id @default(cuid())
+  orderId String @unique
+  order PaymentOrder @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  requestedBy String
+  reason String @db.VarChar(200)
+  status PaymentRefundStatus @default(REQUESTED)
+  providerRefundId String? @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Store identifiers and digest, not raw webhook bodies or card data.
+// Created in the same transaction as the reconciled order and audit record.
+model PaymentEvent {
+  eventId String @id
+  orderId String
+  order PaymentOrder @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  eventType String
+  bodyHash String
+  receivedAt DateTime @default(now())
+  @@index([orderId, receivedAt])
+}
+
+// Multi-instance fixed-window abuse control. Sensitive endpoints fail closed on DB errors.
+model PaymentRateLimit {
+  key String @id
+  count Int
+  expiresAt DateTime
+  @@index([expiresAt])
 }
