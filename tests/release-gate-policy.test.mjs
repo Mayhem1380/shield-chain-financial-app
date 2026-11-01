@@ -1,0 +1,13 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { evaluateReleaseGate, evaluateLiveCapability } from '../lib/release-gate-policy.mjs';
+const gates = Object.fromEntries(['identityProviderConfigured','databaseMigrationsReviewed','backupRestoreTested','independentSecurityReview','incidentOwnerAssigned','supportProcessReady','legalAndRegulatoryReview','monitoringAndAlertingReady','rollbackTested','explicitReleaseApproval'].map((key) => [key, true]));
+test('denies invalid release context', () => assert.equal(evaluateReleaseGate(null).code, 'RELEASE_CONTEXT_INVALID'));
+test('lists incomplete release gates', () => assert.equal(evaluateReleaseGate({ target: 'private_beta', gates: {} }).missing.length, 10));
+test('allows a private-beta policy decision when all gates are explicitly satisfied', () => assert.equal(evaluateReleaseGate({ target: 'private_beta', gates }).allowed, true));
+test('requires a change window for production', () => assert.equal(evaluateReleaseGate({ target: 'production', gates }).code, 'PRODUCTION_CHANGE_WINDOW_NOT_APPROVED'));
+test('allows production gate only with explicit change window approval', () => assert.equal(evaluateReleaseGate({ target: 'production', gates, productionChangeWindowApproved: true }).allowed, true));
+test('live capability remains denied when disabled', () => assert.equal(evaluateLiveCapability({ capability: 'payments', enabled: false }).code, 'CAPABILITY_DISABLED'));
+test('live capability fails closed with missing prerequisites', () => assert.equal(evaluateLiveCapability({ capability: 'withdrawals', enabled: true }).code, 'LIVE_CAPABILITY_GATES_INCOMPLETE'));
+test('rejects unsupported capability names', () => assert.equal(evaluateLiveCapability({ capability: 'admin', enabled: true }).code, 'CAPABILITY_INVALID'));
+test('requires all live capability gates', () => assert.equal(evaluateLiveCapability({ capability: 'payments', enabled: true, releaseGatePassed: true, providerApproved: true, serverSideAuthorizationTested: true, reconciliationReady: true, fraudAndAbuseControlsReady: true, customerDisclosureApproved: true, operationalOwnerAssigned: true }).allowed, true));

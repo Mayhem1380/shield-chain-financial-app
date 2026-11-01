@@ -1,0 +1,4 @@
+import Link from 'next/link';
+export default function AdminPreviewPage() {
+  return <main className="admin-preview"><Link href="/">← Back to public website</Link><div className="eyebrow">INTERNAL PREVIEW</div><h1>Operations console</h1><p>This screen is a design placeholder. It is not an authenticated admin system and must not be exposed as one.</p><div className="admin-grid"><article><span>ACCOUNTS</span><strong>—</strong><small>Not connected</small></article><article><span>PAYMENTS</span><strong>—</strong><small>Not connected</small></article><article><span>RISK ALERTS</span><strong>—</strong><small>Not connected</small></article><article><span>SUPPORT QUEUE</span><strong>—</strong><small>Not connected</small></article></div><div className="admin-warning">Security boundary: before this becomes a real admin portal, implement verified authentication, role-based authorization, MFA, audit events and server-side access checks on every protected action.</div></main>;
+}
