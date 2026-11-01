@@ -1,26 +1,27 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { PREMIUM_PRODUCT_CODE, PREMIUM_TITLE, approvedPremiumProduct, assertRecurringPrice, checkedSubscription, invoiceSnapshot, premiumAccess, calculatePremiumRisk } from '../lib/payments/premium-policy.mjs';
-import { syncPremiumSubscription, createPremiumCheckout } from '../lib/payments/premium-runtime.mjs';
-import { stripeClient } from '../lib/payments/stripe.mjs';
+import { PREMIUM_PRODUCT_CODE, PREMIUM_TITLE, approvedPremiumProduct, requirePremiumConsent, assertRecurringPrice, checkedSubscription, invoiceSnapshot, premiumAccess, calculatePremiumRisk } from '../lib/payments/premium-policy.mjs';
+import { syncPremiumSubscription, createPremiumCheckout, cancelPremiumRecord } from '../lib/payments/premium-runtime.mjs';
+import { PREMIUM_OFFER } from '../lib/premium-offer.mjs';
+import { stripeClient, paymentConfiguration } from '../lib/payments/stripe.mjs';
 import { billingIdentity } from '../lib/payments/runtime.mjs';
 
 // Prices below are isolated TEST FIXTURES, never a product configuration or seeded price.
 const now = Date.now();
 const start = Math.floor(now / 1000) - 3600, end = start + 30 * 86400;
 const config = { live: false, mode: 'test', origin: 'https://sf.example', key: 'sk_test_fixture', webhookSecret: 'whsec_fixture' };
-const product = () => ({ code: PREMIUM_PRODUCT_CODE, title: PREMIUM_TITLE, purpose: 'SOFTWARE_ACCESS', billingMode: 'SUBSCRIPTION', currency: 'aud', amountMinor: 2000, priceId: 'price_fixture', interval: 'month', intervalCount: 1, termsVersion: 'fixture-terms', live: false, enabled: true, providerApprovalReference: 'fixture-only', legalApprovalReference: 'fixture-only', approvedUntil: new Date(now + 86400000) });
-const price = () => ({ id: 'price_fixture', object: 'price', active: true, type: 'recurring', billing_scheme: 'per_unit', livemode: false, currency: 'aud', unit_amount: 2000, recurring: { usage_type: 'licensed', interval: 'month', interval_count: 1 } });
-const record = () => ({ id: 'localSub', userId: 'u1', accountId: 'a1', account: { providerCustomerId: 'cus_fixture' }, productCode: PREMIUM_PRODUCT_CODE, priceId: 'price_fixture', amountMinor: 2000, currency: 'aud', interval: 'month', intervalCount: 1, live: false, providerSubscriptionId: 'sub_fixture', providerStatus: 'checkout', activeSlot: 'u1:test:premium', checkoutSessionId: 'cs_test_fixture', createdAt: new Date(now), lastReconciledAt: new Date(now) });
+const product = () => ({ code: PREMIUM_PRODUCT_CODE, title: PREMIUM_TITLE, purpose: 'SOFTWARE_ACCESS', billingMode: 'SUBSCRIPTION', currency: 'aud', amountMinor: 995, priceId: 'price_fixture', interval: 'month', intervalCount: 1, termsVersion: PREMIUM_OFFER.termsVersion, live: false, enabled: true, providerApprovalReference: 'fixture-only', legalApprovalReference: 'fixture-only', approvedUntil: new Date(now + 86400000) });
+const price = () => ({ id: 'price_fixture', object: 'price', active: true, type: 'recurring', billing_scheme: 'per_unit', livemode: false, currency: 'aud', unit_amount: 995, recurring: { usage_type: 'licensed', interval: 'month', interval_count: 1 } });
+const record = () => ({ id: 'localSub', userId: 'u1', accountId: 'a1', account: { providerCustomerId: 'cus_fixture' }, productCode: PREMIUM_PRODUCT_CODE, priceId: 'price_fixture', amountMinor: 995, currency: 'aud', interval: 'month', intervalCount: 1, live: false, providerSubscriptionId: 'sub_fixture', providerStatus: 'checkout', activeSlot: 'u1:test:premium', checkoutSessionId: 'cs_test_fixture', createdAt: new Date(now), lastReconciledAt: new Date(now) });
 const subscription = () => ({ id: 'sub_fixture', object: 'subscription', customer: 'cus_fixture', metadata: { premiumSubscriptionId: 'localSub' }, livemode: false, currency: 'aud', status: 'active', collection_method: 'charge_automatically', items: { has_more: false, data: [{ quantity: 1, price: price(), current_period_start: start, current_period_end: end }] }, latest_invoice: 'in_fixture', cancel_at_period_end: false });
-const invoice = () => ({ id: 'in_fixture', object: 'invoice', livemode: false, customer: 'cus_fixture', parent: { subscription_details: { subscription: 'sub_fixture' } }, currency: 'aud', total: 2000, amount_paid: 2000, amount_remaining: 0, status: 'paid', hosted_invoice_url: 'https://invoice.stripe.com/i/fixture', lines: { has_more: false, data: [{ quantity: 1, pricing: { price_details: { price: 'price_fixture' } }, period: { start, end } }] } });
-const payments = () => ({ has_more: false, data: [{ invoice: 'in_fixture', status: 'paid', livemode: false, currency: 'aud', amount_paid: 2000, payment: { type: 'payment_intent', payment_intent: 'pi_fixture' }, status_transitions: { paid_at: start } }] });
-const intent = () => ({ id: 'pi_fixture', object: 'payment_intent', status: 'succeeded', customer: 'cus_fixture', livemode: false, currency: 'aud', amount_received: 2000, latest_charge: { customer: 'cus_fixture', livemode: false, currency: 'aud', amount: 2000, paid: true, captured: true, amount_refunded: 0, receipt_url: 'https://pay.stripe.com/receipts/fixture' } });
+const invoice = () => ({ id: 'in_fixture', object: 'invoice', livemode: false, customer: 'cus_fixture', parent: { subscription_details: { subscription: 'sub_fixture' } }, currency: 'aud', total: 995, amount_paid: 995, amount_remaining: 0, status: 'paid', hosted_invoice_url: 'https://invoice.stripe.com/i/fixture', lines: { has_more: false, data: [{ quantity: 1, pricing: { price_details: { price: 'price_fixture' } }, period: { start, end } }] } });
+const payments = () => ({ has_more: false, data: [{ invoice: 'in_fixture', status: 'paid', livemode: false, currency: 'aud', amount_paid: 995, payment: { type: 'payment_intent', payment_intent: 'pi_fixture' }, status_transitions: { paid_at: start } }] });
+const intent = () => ({ id: 'pi_fixture', object: 'payment_intent', status: 'succeeded', customer: 'cus_fixture', livemode: false, currency: 'aud', amount_received: 995, latest_charge: { customer: 'cus_fixture', livemode: false, currency: 'aud', amount: 995, paid: true, captured: true, amount_refunded: 0, receipt_url: 'https://pay.stripe.com/receipts/fixture' } });
 const checkout = () => ({ id: 'cs_test_fixture', object: 'checkout.session', mode: 'subscription', livemode: false, customer: 'cus_fixture', client_reference_id: 'localSub', metadata: { premiumSubscriptionId: 'localSub' }, subscription: 'sub_fixture', consent: { terms_of_service: 'accepted' } });
 
 test('no price, unverified approval, wrong product or expired approval can enable Premium', () => {
   assert.equal(approvedPremiumProduct(product(), false, now).code, PREMIUM_PRODUCT_CODE);
-  for (const patch of [{ amountMinor: null }, { enabled: false }, { providerApprovalReference: null }, { legalApprovalReference: null }, { termsVersion: null }, { currency: 'usd' }, { purpose: 'PROP_TRADING' }, { code: 'CRYPTO_FUNDING' }, { interval: null }, { approvedUntil: 'invalid' }, { approvedUntil: new Date(now - 1) }, { live: true }]) assert.throws(() => approvedPremiumProduct({ ...product(), ...patch }, false, now), /NOT_CONFIGURED_OR_APPROVED/);
+  for (const patch of [{ amountMinor: null }, { enabled: false }, { providerApprovalReference: null }, { legalApprovalReference: null }, { termsVersion: null }, { currency: 'usd' }, { purpose: 'PROP_TRADING' }, { code: 'CRYPTO_FUNDING' }, { interval: null }, { approvedUntil: 'invalid' }, { approvedUntil: new Date(now - 1) }, { live: true }]) assert.throws(() => approvedPremiumProduct({ ...product(), ...patch }, false, now), /NOT_CONFIGURED_OR_APPROVED|PROPOSED_PRICE_OR_TERMS_MISMATCH/);
 });
 test('recurring price must match gross amount, currency, mode and full interval', () => {
   assert.doesNotThrow(() => assertRecurringPrice(record(), price()));
@@ -112,7 +113,7 @@ test('payment failure or a pending current invoice refund revokes premium access
 });
 test('refund and dispute are canonical, irreversible risk events for access', async () => {
   const { state, client, provider } = fixture();
-  provider.paymentIntent = async () => ({ ...intent(), latest_charge: { ...intent().latest_charge, amount_refunded: 2000 } });
+  provider.paymentIntent = async () => ({ ...intent(), latest_charge: { ...intent().latest_charge, amount_refunded: 995 } });
   await syncPremiumSubscription(client, 'localSub', config, null, null, provider);
   assert.equal(state.record.accessUntil, null);
   provider.paymentIntent = async () => intent();
@@ -131,9 +132,9 @@ test('a second subscription checkout request reuses the server reservation acros
     },
   };
   const client = { billingAccount: { upsert: async () => ({ id: 'a1', providerCustomerId: 'cus_fixture' }) }, $transaction: async fn => fn(tx) };
-  const provider = { price: async () => price(), createSubscriptionCheckout: async () => ({ ...checkout(), url: 'https://checkout.stripe.com/c/pay/fixture', currency: 'aud', amount_total: 2000 }) };
-  const first = await createPremiumCheckout(client, { id: 'u1' }, product(), config, 'first-key', provider);
-  const second = await createPremiumCheckout(client, { id: 'u1' }, product(), config, 'second-key', provider);
+  const provider = { price: async () => price(), createSubscriptionCheckout: async () => ({ ...checkout(), url: 'https://checkout.stripe.com/c/pay/fixture', currency: 'aud', amount_total: 995 }) };
+  const first = await createPremiumCheckout(client, { id: 'u1' }, product(), config, 'first-key', { accepted: true, termsVersion: PREMIUM_OFFER.termsVersion }, provider);
+  const second = await createPremiumCheckout(client, { id: 'u1' }, product(), config, 'second-key', { accepted: true, termsVersion: PREMIUM_OFFER.termsVersion }, provider);
   assert.equal(first.subscriptionId, second.subscriptionId); assert.equal(created, 1);
 });
 test('provider subscription request uses recurring mode, fixed price, customer and consent', async () => {
@@ -176,4 +177,54 @@ test('billing mutations reject cross-origin, missing recent MFA and customer ref
     session = { ...session, mfaVerifiedAt: new Date(Date.now() - 16 * 60000) };
     await assert.rejects(billingIdentity(request, client, true), /RECENT_MFA_REQUIRED/);
   } finally { if (previous === undefined) delete process.env.PAYMENTS_ORIGIN; else process.env.PAYMENTS_ORIGIN = previous; }
+});
+
+test('995 cents per month is a proposal, never permission to activate live sales', () => {
+  assert.equal(PREMIUM_OFFER.amountMinor, 995); assert.equal(PREMIUM_OFFER.interval, 'month'); assert.equal(PREMIUM_OFFER.intervalCount, 1);
+  assert.equal(PREMIUM_OFFER.pricingStatus, 'PROPOSED'); assert.equal(PREMIUM_OFFER.ownerPricingApprovalReference, null);
+  assert.throws(() => approvedPremiumProduct({ ...product(), live: true, pricingApprovalReference: 'fixture-only' }, true), /FINAL_PREMIUM_PRICING_APPROVAL_REQUIRED/);
+  for (const patch of [{ amountMinor: 994 }, { amountMinor: 996 }, { currency: 'usd' }, { interval: 'year' }, { intervalCount: 2 }]) assert.throws(() => approvedPremiumProduct({ ...product(), ...patch }, false), /PROPOSED_PRICE_OR_TERMS_MISMATCH/);
+});
+
+test('terms must be explicitly accepted and the proposal version must match', () => {
+  assert.doesNotThrow(() => requirePremiumConsent({ accepted: true, termsVersion: PREMIUM_OFFER.termsVersion }));
+  for (const consent of [null, {}, { accepted: false, termsVersion: PREMIUM_OFFER.termsVersion }, { accepted: 'true', termsVersion: PREMIUM_OFFER.termsVersion }, { accepted: true, termsVersion: 'old' }]) assert.throws(() => requirePremiumConsent(consent), /TERMS_ACCEPTANCE_REQUIRED/);
+});
+
+test('cancellation is confirmed at Stripe, preserves paid access, and repeated requests do not repeat the mutation', async () => {
+  const { state, client, provider } = fixture(); let calls = 0;
+  provider.cancelSubscriptionAtPeriodEnd = async () => { calls++; state.subscription.cancel_at_period_end = true; return state.subscription; };
+  const result = await cancelPremiumRecord(client, state.record, config, 'u1', provider);
+  assert.equal(result.cancellationConfirmed, true); assert.equal(result.noFurtherRenewals, true);
+  assert.equal(result.accessUntil, new Date(end * 1000).toISOString());
+  assert.equal(state.record.cancelAtPeriodEnd, true);
+  await cancelPremiumRecord(client, state.record, config, 'u1', provider);
+  assert.equal(calls, 1);
+  const currentInvoice = state.invoices.get('in_fixture');
+  assert.equal(premiumAccess(state.record, currentInvoice, end * 1000, false).allowed, false);
+});
+
+test('cancellation cannot target another customer or claim success before provider confirmation', async () => {
+  const { state, client, provider } = fixture();
+  await assert.rejects(cancelPremiumRecord(client, state.record, config, 'u2', provider), /NOT_FOUND/);
+  provider.cancelSubscriptionAtPeriodEnd = async () => ({ ...state.subscription, cancel_at_period_end: false });
+  await assert.rejects(cancelPremiumRecord(client, state.record, config, 'u1', provider), /CANCELLATION_NOT_CONFIRMED/);
+  assert.notEqual(state.record.cancelAtPeriodEnd, true);
+});
+
+test('disabling new live sales does not prevent existing customer cancellation configuration', () => {
+  const env = { PAYMENTS_MODE: 'live', STRIPE_SECRET_KEY: 'sk_live_fixtureOnly', STRIPE_WEBHOOK_SECRET: 'whsec_fixtureOnly', PAYMENTS_ORIGIN: 'https://sf.example', PAYMENTS_LIVE_ENABLED: 'false' };
+  assert.throws(() => paymentConfiguration(env), /LIVE_PAYMENT_APPROVALS_REQUIRED/);
+  assert.equal(paymentConfiguration(env, { existingBilling: true }).live, true);
+  assert.throws(() => paymentConfiguration({ ...env, STRIPE_SECRET_KEY: '' }, { existingBilling: true }), /CREDENTIALS/);
+});
+
+test('Stripe cancellation sets period-end flag without immediate termination or proration', async () => {
+  let captured;
+  const client = stripeClient(config, async (url, init) => { captured = { url, ...init }; return Response.json({ livemode: false }); });
+  await client.cancelSubscriptionAtPeriodEnd('sub_fixture');
+  assert.equal(captured.method, 'POST'); assert.equal(captured.url, 'https://api.stripe.com/v1/subscriptions/sub_fixture');
+  const fields = new URLSearchParams(captured.body);
+  assert.equal(fields.get('cancel_at_period_end'), 'true'); assert.equal(fields.get('proration_behavior'), 'none');
+  assert.equal(fields.has('items'), false);
 });

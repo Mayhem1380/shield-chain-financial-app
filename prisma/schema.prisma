@@ -296,6 +296,7 @@ model PaymentProduct {
   interval String?
   intervalCount Int?
   termsVersion String?
+  pricingApprovalReference String?
   live Boolean @default(false)
   enabled Boolean @default(false)
   providerApprovalReference String?
@@ -334,12 +335,15 @@ model PremiumSubscription {
   interval String
   intervalCount Int
   termsVersion String
+  termsAcceptedAt DateTime?
   live Boolean
   checkoutSessionId String? @unique
   checkoutUrl String?
   providerSubscriptionId String? @unique
   providerStatus String @default("creating")
   cancelAtPeriodEnd Boolean @default(false)
+  cancellationRequestedAt DateTime?
+  currentPeriodEnd DateTime?
   currentInvoiceId String?
   accessUntil DateTime?
   riskHold Boolean @default(false)

@@ -6,8 +6,11 @@ Product: **ShieldChain Financial Premium Software Access**.
 Purpose: educational tools, crypto calculators and premium dashboard features.
 Provider preference: **Stripe**. Currency: **AUD**.
 Merchant approval and approval of this specific product remain **UNVERIFIED**.
-Price, recurring billing interval, tax presentation and contractual cancellation terms
-remain unset. No product row, price, approval reference or subscription has been seeded.
+Proposed price: **AUD $9.95 per month**, billed monthly (995 minor units). Customer
+cancellation takes effect at the end of the paid period, retaining access until that
+date and stopping subsequent renewals. Final pricing approval, merchant eligibility and
+tax presentation remain unresolved. No provider Product/Price or subscription has been
+created or enabled. See PREMIUM-PRICING-PROPOSAL.md.
 
 Proprietary **SF Crypto Payments** is separate. It has no call path from this merchant
 billing module. This subscription grants software features only: no crypto purchases,
@@ -34,8 +37,9 @@ in this initial strict billing path. They must not be enabled in Stripe's portal
 - Renewals persist invoices and receipts. Open invoices, past_due, unpaid, paused,
   incomplete, trialing, canceled or expired subscriptions do not grant premium access.
   Cancellation at period end retains access only through the current paid period;
-  immediate cancellation revokes access. This is an implementation policy awaiting
-  confirmation in owner-approved terms, not a claim that terms have been accepted.
+  immediate provider/security cancellation revokes access. Customer cancellation uses
+  period-end cancellation as specified by the owner. Versioned terms, renewal pricing
+  and refund information are shown before checkout; explicit acceptance is recorded.
 - Server-side `requirePremiumAccess` guards both `/premium` and its calculator API.
   Access uses DB-owned identity and subscription data, not browser flags. Test-mode
   subscriptions cannot grant access to a live-mode deployment. Public recovered demo
@@ -63,6 +67,7 @@ in this initial strict billing path. They must not be enabled in Stripe's portal
 | POST `/api/billing/checkout` | Existing endpoint now supports approved recurring Premium checkout |
 | GET `/api/billing/subscriptions` | Owned subscriptions, invoices, receipts and current entitlement |
 | POST `/api/billing/subscriptions/reconcile` | Recheck an owned subscription using its local subscriptionId |
+| POST `/api/billing/subscriptions/cancel` | Confirm customer-owned period-end cancellation with Stripe, retaining paid access |
 | POST `/api/billing/portal` | Create a Stripe-hosted customer billing management session |
 | POST `/api/billing/invoice-refunds` | Staff-only full refund by local invoiceId and allowed reason code |
 | POST `/api/billing/webhook` | Existing signed endpoint extended for subscription/invoice events |
@@ -77,19 +82,26 @@ operations work. Stripe's portal provides the provider's complete customer invoi
 
 ## Configuration without inventing a price or approval
 
-1. Owner selects an actual AUD amount and recurring interval, verifies pricing/tax
-   presentation, refund rights, recurring consent and cancellation terms.
+1. Owner reviews the proposed AUD $9.95 monthly price and separately approves final
+   pricing after reviewing tax presentation, refund rights and contractual documents.
+   The version-controlled offer remains PROPOSED with no owner approval reference,
+   and live Premium checkout rejects it even if environment switches are enabled.
 2. Obtain Stripe acceptance of the real business and Premium product. Educational
    terminology is not an exemption from financial-service restrictions. Do not enable
    any product prohibited by the provider or use the software description as a workaround.
 3. In the approved Stripe environment create/review the real Product and Price outside
    this script. No service is purchased or provisioned by this repository.
-4. Once secure test credentials, webhook secret, DATABASE_URL and exact HTTPS origin
+4. The read-only `node scripts/configure-premium-product.mjs --show-proposal` command
+   shows the proposal without credentials or writes. Once secure test credentials,
+   webhook secret, DATABASE_URL and exact HTTPS origin
    exist, `node scripts/configure-premium-product.mjs price_ID` imports the existing
-   provider price as **disabled**, copying amount/interval from Stripe. It intentionally
+   provider price as **disabled**, only if it matches AUD 995 cents monthly. It intentionally
    clears approval/terms fields. It never creates a price or asserts permission.
 5. Through a privileged reviewed operations process, record the real provider/legal
-   approval evidence, expiry and owner-approved termsVersion before enabling a product.
+   approval evidence, expiry and current termsVersion before enabling a test product.
+   Live sales additionally require explicit final pricing approval, a real owner
+   approval reference in the offer and matching product pricingApprovalReference.
+   Do not change PROPOSED to APPROVED without that further owner instruction.
    There is no public product-administration endpoint. Separate test/live databases and
    environments; Product code is unique within each database.
 6. Add `STRIPE_PORTAL_CONFIGURATION_ID` (non-secret ID) to the existing secure billing
@@ -153,3 +165,12 @@ is part of this batch.
 - https://docs.stripe.com/api/invoice-line-item/object
 - https://docs.stripe.com/api/customer_portal/sessions/create
 - https://docs.stripe.com/billing/subscriptions/webhooks
+
+Customer cancellation uses a verified Stripe update with cancel_at_period_end=true and
+no proration. A local request timestamp is not success: only a canonical provider check
+returns cancellationConfirmed and noFurtherRenewals. Existing billing reads, refunds,
+webhooks and access reconciliation remain available with the new-live-sales switch off
+when valid existing-billing credentials remain configured. No billing operation has been
+run against a real provider account in this executor.
+
+Cancellation API reference: https://docs.stripe.com/billing/subscriptions/cancel

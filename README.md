@@ -114,7 +114,9 @@ The `db:preflight` script checks key schema invariants without connecting to a d
 
 The owner-confirmed first fiat product is **ShieldChain Financial Premium Software Access**
 (educational tools, crypto calculators and premium dashboard features), using Stripe in AUD.
-Price and billing interval are not configured, and provider permission remains unverified.
+Proposed pricing is AUD $9.95 per month, with cancellation at the end of the paid period.
+Final pricing approval and provider permission remain unverified; live charging stays
+disabled. The Beginner Handbook and basic education remain free.
 
 See [Premium billing implementation and activation requirements](docs/PREMIUM-SOFTWARE-BILLING.md).
 The working code includes recurring hosted checkout, customer billing/portal, invoice/receipt
