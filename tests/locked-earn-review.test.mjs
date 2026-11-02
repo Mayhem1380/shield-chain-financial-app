@@ -72,3 +72,7 @@ test('daily repricing changes observations without compounding principal',async(
 test('same principal and reward asset uses a single source pair',async()=>{
  const f=fixture({plan:{rewardAsset:'ETH'}});const r=await f.service.observeDay('plan_fixture','2026-11-01');assert.equal(f.calls,1);assert.equal(r.indicativeRewardUnits,'0.002');
 });
+test('ownership changes cannot reassign an already recorded day under the same configuration',async()=>{
+ const f=fixture();await f.service.observeDay('plan_fixture','2026-11-01');f.plan.userId='different-owner';
+ await assert.rejects(f.service.observeDay('plan_fixture','2026-11-01'),/CONFIGURATION_CONFLICT/);
+});
