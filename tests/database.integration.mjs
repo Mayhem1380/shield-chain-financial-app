@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import { billingIdentity } from '../lib/payments/runtime.mjs';
+import { revokeCurrentSession } from '../lib/auth/session-security.mjs';
 
 // Never run this suite against a customer database. CI provisions a disposable instance.
 test('isolated PostgreSQL migration and billing behaviour', { skip: process.env.SHIELDCHAIN_DATABASE_TESTS !== '1' }, async t => {
@@ -55,6 +56,10 @@ test('isolated PostgreSQL migration and billing behaviour', { skip: process.env.
       assert.equal((await billingIdentity(request, client)).id, user.id);
       await client.authSession.update({ where: { id: session.id }, data: { revokedAt: new Date() } });
       await assert.rejects(billingIdentity(request, client), /AUTHENTICATION_REQUIRED/);
+      await client.authSession.update({ where: { id: session.id }, data: { revokedAt: null } });
+      const logout = new Request('https://validation.invalid/api/auth/logout', { method: 'POST', headers: { cookie: `__Host-sf_session=${token}`, origin: 'https://validation.invalid', 'content-type': 'application/json' }, body: '{}' });
+      assert.equal((await revokeCurrentSession(client, logout, { AUTH_ORIGIN: 'https://validation.invalid' })).revoked, true);
+      await assert.rejects(billingIdentity(request, client), /AUTHENTICATION_REQUIRED/);
     });
   } finally {
     if (user) {
@@ -62,6 +67,7 @@ test('isolated PostgreSQL migration and billing behaviour', { skip: process.env.
       await client.paymentEvent.deleteMany({ where: { orderId: { in: orders.map(order => order.id) } } });
       await client.paymentOrder.deleteMany({ where: { userId: user.id } });
       await client.auditEvent.deleteMany({ where: { requestId: marker } });
+      await client.auditEvent.deleteMany({ where: { actorUserId: user.id } });
       await client.paymentRateLimit.deleteMany({ where: { key: { startsWith: `user:${user.id}:` } } });
       await client.authSession.deleteMany({ where: { userId: user.id } });
       await client.user.delete({ where: { id: user.id } });

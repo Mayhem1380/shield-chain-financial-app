@@ -1,5 +1,10 @@
 # Existing Replit Wallet Aggregator — integration boundary
 
+Published application URL supplied by the owner: https://wallet-aggregator.replit.app.
+This is recorded only as an application reference. It is not a source repository or an
+assumed API base URL and has not enabled a connection. A repository/export is pending.
+Independent ShieldChain work must continue without waiting for that source.
+
 The owner's app source has not been supplied or inspected in this executor. No features,
 API routes, balances, custody model, chain support, authentication scheme or provider
 permissions are asserted. Existing wallet source and all recovered previews are unchanged.

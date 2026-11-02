@@ -15,6 +15,8 @@ function fixture() {
 }
 
 test('existing Wallet Aggregator remains uninspected and disabled by default', async () => {
+  assert.equal(walletAggregatorStatus().publishedApplicationUrl, 'https://wallet-aggregator.replit.app');
+  assert.equal(walletAggregatorStatus().sourceInspected, false);
   assert.deepEqual(walletAggregatorStatus().enabledCapabilities, []);
   assert.equal(walletAggregatorStatus().transactionsEnabled, false);
   await assert.rejects(createWalletAggregatorBoundary({}).read({ capability: 'fixture_read' }), /SOURCE_REVIEW_REQUIRED/);

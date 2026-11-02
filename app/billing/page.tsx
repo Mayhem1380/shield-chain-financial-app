@@ -96,7 +96,7 @@ export default function BillingPage() {
   }
 
   return <main className="workspace-page">
-    <header className="workspace-header"><div><h1>Payments and receipts</h1><p>Purchases and refunds linked to your customer account.</p></div><Link href="/account">Account</Link></header>
+    <header className="workspace-header"><div><h1>Payments and receipts</h1><p>Purchases and refunds linked to your customer account.</p></div><div><Link href="/account">Account</Link> · <Link href="/account/sessions">Session security</Link></div></header>
     <p>Your payment is confirmed only after the payment provider confirms it. Returning from checkout does not establish payment.</p>
     {mode === 'test' && <p role="status">Payment-provider test environment. Real customer funds cannot be processed in this environment.</p>}
     {error && <p role="alert">{error}</p>}

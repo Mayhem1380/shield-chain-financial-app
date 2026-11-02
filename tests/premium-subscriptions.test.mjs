@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { PREMIUM_PRODUCT_CODE, PREMIUM_TITLE, approvedPremiumProduct, requirePremiumConsent, assertRecurringPrice, checkedSubscription, invoiceSnapshot, premiumAccess, calculatePremiumRisk } from '../lib/payments/premium-policy.mjs';
-import { syncPremiumSubscription, createPremiumCheckout, cancelPremiumRecord } from '../lib/payments/premium-runtime.mjs';
+import { syncPremiumSubscription, createPremiumCheckout, cancelPremiumRecord, formatPremiumBillingRecords } from '../lib/payments/premium-runtime.mjs';
 import { PREMIUM_OFFER } from '../lib/premium-offer.mjs';
 import { stripeClient, paymentConfiguration } from '../lib/payments/stripe.mjs';
 import { billingIdentity } from '../lib/payments/runtime.mjs';
@@ -229,4 +229,17 @@ test('Stripe cancellation sets period-end flag without immediate termination or 
   const fields = new URLSearchParams(captured.body);
   assert.equal(fields.get('cancel_at_period_end'), 'true'); assert.equal(fields.get('proration_behavior'), 'none');
   assert.equal(fields.has('items'), false);
+});
+
+test('billing summary looks up the current paid invoice beyond the displayed history page', async () => {
+  const paid = { id: 'currentInvoice', subscriptionId: 'localSub', ...invoiceSnapshot(record(), invoice(), payments(), intent(), 'cus_fixture') };
+  let lookups = 0;
+  const client = { billingInvoice: { findUnique: async ({ where }) => { lookups++; assert.equal(where.providerInvoiceId, 'in_fixture'); return paid; } } };
+  const current = { ...record(), providerStatus: 'active', currentInvoiceId: 'in_fixture', accessUntil: new Date(end * 1000), invoices: [{ ...paid, id: 'oldInvoice', providerInvoiceId: 'in_old', status: 'open' }] };
+  const summary = await formatPremiumBillingRecords(client, [current], config);
+  assert.equal(lookups, 1); assert.equal(summary.subscriptions[0].access.allowed, true);
+  assert.equal(summary.subscriptions[0].invoices.length, 1);
+  assert.equal(Object.hasOwn(summary.subscriptions[0].invoices[0], 'paymentIntentId'), false);
+  paid.subscriptionId = 'foreignSubscription';
+  assert.equal((await formatPremiumBillingRecords(client, [current], config)).subscriptions[0].access.allowed, false);
 });
