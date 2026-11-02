@@ -179,9 +179,11 @@ test('billing mutations reject cross-origin, missing recent MFA and customer ref
   } finally { if (previous === undefined) delete process.env.PAYMENTS_ORIGIN; else process.env.PAYMENTS_ORIGIN = previous; }
 });
 
-test('995 cents per month is a proposal, never permission to activate live sales', () => {
+test('995 cents per month is owner-approved, never permission to activate live sales', () => {
   assert.equal(PREMIUM_OFFER.amountMinor, 995); assert.equal(PREMIUM_OFFER.interval, 'month'); assert.equal(PREMIUM_OFFER.intervalCount, 1);
-  assert.equal(PREMIUM_OFFER.pricingStatus, 'PROPOSED'); assert.equal(PREMIUM_OFFER.ownerPricingApprovalReference, null);
+  assert.equal(PREMIUM_OFFER.pricingStatus, 'APPROVED'); assert.equal(PREMIUM_OFFER.ownerPricingApprovalReference, 'OWNER_CHAT_FINAL_PRICE_2026-11-01');
+  assert.equal(PREMIUM_OFFER.activationStatus, 'NOT_AUTHORISED'); assert.equal(PREMIUM_OFFER.ownerActivationReference, null);
+  assert.throws(() => approvedPremiumProduct({ ...product(), live: true, pricingApprovalReference: PREMIUM_OFFER.ownerPricingApprovalReference }, true), /SEPARATE_LIVE_ACTIVATION_AUTHORISATION_REQUIRED/);
   assert.throws(() => approvedPremiumProduct({ ...product(), live: true, pricingApprovalReference: 'fixture-only' }, true), /FINAL_PREMIUM_PRICING_APPROVAL_REQUIRED/);
   for (const patch of [{ amountMinor: 994 }, { amountMinor: 996 }, { currency: 'usd' }, { interval: 'year' }, { intervalCount: 2 }]) assert.throws(() => approvedPremiumProduct({ ...product(), ...patch }, false), /PROPOSED_PRICE_OR_TERMS_MISMATCH/);
 });

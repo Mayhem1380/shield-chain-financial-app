@@ -6,9 +6,9 @@ Product: **ShieldChain Financial Premium Software Access**.
 Purpose: educational tools, crypto calculators and premium dashboard features.
 Provider preference: **Stripe**. Currency: **AUD**.
 Merchant approval and approval of this specific product remain **UNVERIFIED**.
-Proposed price: **AUD $9.95 per month**, billed monthly (995 minor units). Customer
+Owner-approved price: **AUD $9.95 per month**, billed monthly (995 minor units). Customer
 cancellation takes effect at the end of the paid period, retaining access until that
-date and stopping subsequent renewals. Final pricing approval, merchant eligibility and
+date and stopping subsequent renewals. Final pricing is owner-approved; merchant eligibility, activation authorisation and
 tax presentation remain unresolved. No provider Product/Price or subscription has been
 created or enabled. See PREMIUM-PRICING-PROPOSAL.md.
 
@@ -82,10 +82,10 @@ operations work. Stripe's portal provides the provider's complete customer invoi
 
 ## Configuration without inventing a price or approval
 
-1. Owner reviews the proposed AUD $9.95 monthly price and separately approves final
-   pricing after reviewing tax presentation, refund rights and contractual documents.
-   The version-controlled offer remains PROPOSED with no owner approval reference,
-   and live Premium checkout rejects it even if environment switches are enabled.
+1. Owner has approved AUD $9.95 monthly pricing and paid-period-end cancellation.
+   The version-controlled offer records APPROVED pricing and NOT_AUTHORISED activation.
+   New live Premium checkout remains blocked even if environment switches are enabled.
+   Review tax presentation, refund rights and contractual documents before activation.
 2. Obtain Stripe acceptance of the real business and Premium product. Educational
    terminology is not an exemption from financial-service restrictions. Do not enable
    any product prohibited by the provider or use the software description as a workaround.
@@ -99,9 +99,9 @@ operations work. Stripe's portal provides the provider's complete customer invoi
    clears approval/terms fields. It never creates a price or asserts permission.
 5. Through a privileged reviewed operations process, record the real provider/legal
    approval evidence, expiry and current termsVersion before enabling a test product.
-   Live sales additionally require explicit final pricing approval, a real owner
-   approval reference in the offer and matching product pricingApprovalReference.
-   Do not change PROPOSED to APPROVED without that further owner instruction.
+   Owner final pricing approval is now recorded; product pricingApprovalReference must
+   match the real recorded instruction reference. Live sales additionally require separate
+   owner activation authorisation. Never treat pricing approval as activation permission.
    There is no public product-administration endpoint. Separate test/live databases and
    environments; Product code is unique within each database.
 6. Add `STRIPE_PORTAL_CONFIGURATION_ID` (non-secret ID) to the existing secure billing

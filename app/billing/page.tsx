@@ -23,6 +23,7 @@ async function api(path: string, init?: RequestInit) {
       PREMIUM_PRODUCT_NOT_CONFIGURED_OR_APPROVED: 'Premium Software Access is not available for checkout yet.',
       SUBSCRIPTION_ALREADY_EXISTS: 'You already have a subscription or checkout in progress. Manage it below.',
       FINAL_PREMIUM_PRICING_APPROVAL_REQUIRED: 'Final pricing approval is still pending. Live charging is disabled.',
+      SEPARATE_LIVE_ACTIVATION_AUTHORISATION_REQUIRED: 'Pricing is approved, but live charging has not been authorised.',
       PREMIUM_SUBSCRIPTION_TERMS_ACCEPTANCE_REQUIRED: 'Please review and accept the current subscription terms before continuing.',
     };
     throw new Error(messages[data.error] || 'Billing is temporarily unavailable. No payment confirmation has been recorded here. Contact support if you were charged.');
@@ -101,7 +102,7 @@ export default function BillingPage() {
     {error && <p role="alert">{error}</p>}
     {notice && <p role="status">{notice}</p>}
     <PremiumTerms />
-    <label><input type="checkbox" checked={termsAccepted} onChange={event => setTermsAccepted(event.target.checked)} /> I have reviewed the proposed AUD $9.95 monthly price, automatic renewal, cancellation and refund information above.</label>
+    <label><input type="checkbox" checked={termsAccepted} onChange={event => setTermsAccepted(event.target.checked)} /> I have reviewed the AUD $9.95 monthly price, automatic renewal, cancellation and refund information above.</label>
     <button className="button" type="button" disabled={busy} onClick={() => void refresh()}>{busy ? 'Checking billing…' : 'Refresh billing'}</button>
     <section aria-label="Available services" aria-busy={busy}><h2>Available services</h2>
       {!busy && !error && products.length === 0 && <p>No services are currently approved for checkout.</p>}

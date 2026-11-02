@@ -1,47 +1,27 @@
-# Premium Software Access — pricing proposal for review
+# Premium Software Access — approved pricing, activation disabled
 
-| Item | Proposal |
-| --- | --- |
-| Product | ShieldChain Financial Premium Software Access |
-| Provider | Stripe; merchant/product eligibility not yet confirmed |
-| Customer price | AUD $9.95 per month |
-| Server amount | 995 AUD minor units |
-| Billing | Monthly; automatic renewal at the same price until canceled |
-| Customer cancellation | Effective at the end of the current paid billing period |
-| Access after cancellation | Retained through the verified paid-period end |
-| Renewals after confirmed cancellation | None |
-| Free | Beginner Handbook and basic educational features |
-| Premium | Enhanced calculators, educational analytics and dashboard features |
-| Returns | No trading profits or financial returns promised |
-| Activation | Disabled pending separate final pricing approval and confirmed provider eligibility |
+- Owner-approved customer price: **AUD $9.95 per month**, billed monthly.
+- Cancellation takes effect at the end of the paid period; paid access continues until
+  that date and further renewals stop after provider-confirmed cancellation.
+- The Beginner Handbook and basic educational features remain free.
+- Premium includes enhanced calculators, educational analytics and dashboard features.
+  No trading profits or financial returns are promised.
+- Stripe merchant/product eligibility is unverified. Live activation is NOT_AUTHORISED.
 
-The user approved building/testing this proposal, not activating live charging. The
-offer is recorded in `lib/premium-offer.mjs` as PROPOSED, with an empty owner approval
-reference. Product-level pricing approval, merchant eligibility, legal/security gates,
-verified database/identity and genuine end-to-end testing are still required.
+The earlier proposal and e781312 are preserved in Git history. See
+[owner approval record](OWNER-PRICING-APPROVAL.md) for the exact scope of approval.
+No product, subscription or customer charge has been created at Stripe.
 
-Public review page: `/pricing`. Billing shows the same versioned terms before checkout,
-an unchecked acceptance box, renewal amount and cancellation/refund information. Basic
-education and the handbook have not been paywalled. The API rejects stale or missing
-acceptance. Provider terms consent is additionally required at Stripe checkout.
+Public `/pricing` and pre-checkout billing show renewal price, cancellation and refund
+information. Acceptance is unchecked by default, required by the server, and recorded
+with a terms version and timestamp. Provider terms consent is required as well.
 
-Cancellation control: customer selects Cancel subscription, reviews the paid-period
-policy, then confirms. Stripe is updated with cancel_at_period_end=true and no proration.
-Only canonical confirmation produces a no-further-renewals message; access is preserved
-for the paid period. The cancellation endpoint remains usable with the new-live-sales
-switch off, provided existing-billing credentials and infrastructure are available.
+Refund information: cancellation does not itself refund an existing payment. Customers
+may request review of billing errors/refunds with an invoice reference, without exclusion
+of statutory rights including Australian Consumer Law. Entity/GST presentation, final
+legal documents and operational support must be reviewed before sales.
 
-Refund information shown before checkout: cancellation does not itself refund a payment
-already made. Customers can contact support with an invoice reference for billing errors
-or refund requests; statutory rights including Australian Consumer Law are not excluded.
-No blanket non-refundable term, invented guarantee or automatic refund entitlement was
-added. Final documents, Australian entity/GST presentation and operational support must
-be reviewed before sales. No extra tax or fee may silently change the proposed total.
-
-`node scripts/configure-premium-product.mjs --show-proposal` is a read-only local review
-command. It neither reads credentials nor calls Stripe. Importing an actual Stripe Price
-requires secure provider configuration and only accepts the exact proposed monthly AUD
-amount; the imported product remains disabled and does not assert approval.
-
-SF Crypto Payments remains a separate system without a call path from this software
-subscription. Existing recovered financial previews are not activated by this proposal.
+The read-only local command `node scripts/configure-premium-product.mjs --show-proposal`
+shows the current offer without credentials or network calls (the flag is retained for
+compatibility). Actual provider Price import remains disabled by default and never
+asserts merchant acceptance. SF Crypto Payments remains entirely separate.
