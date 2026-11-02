@@ -14,6 +14,15 @@ enum AccountStatus {
   CLOSED
 }
 
+// Provision only through an approved operator process; never from customer inputs.
+enum PlatformRole {
+  CUSTOMER
+  SUPPORT
+  SECURITY
+  OPERATIONS
+  OWNER
+}
+
 enum AuditSeverity {
   INFO
   WARNING
@@ -55,6 +64,8 @@ model User {
   sfWalletVault SfWalletVault?
   sfExchangeConnections SfExchangeConnection[]
   billingRole BillingRole @default(CUSTOMER)
+  platformRole PlatformRole @default(CUSTOMER)
+  notifications CustomerNotification[]
 
   @@unique([identityProvider, providerSubject])
 
@@ -155,6 +166,8 @@ model SupportTicket {
   status         SupportTicketStatus @default(OPEN)
   priority       SupportPriority     @default(NORMAL)
   subject        String              @db.VarChar(120)
+  requestKey     String?             @db.VarChar(100)
+  requestHash    String?             @db.VarChar(64)
   createdAt      DateTime            @default(now())
   updatedAt      DateTime            @updatedAt
   firstResponseAt DateTime?
@@ -163,6 +176,7 @@ model SupportTicket {
 
   @@index([status, priority, createdAt])
   @@index([userId, createdAt])
+  @@unique([userId, requestKey])
 }
 
 model SupportMessage {
@@ -170,11 +184,32 @@ model SupportMessage {
   ticketId    String
   ticket      SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
   authorType  String        // Enforce allowed values in application policy (CUSTOMER, STAFF, SYSTEM).
+  authorUserId String?
   body        String        @db.VarChar(5000)
   internal    Boolean       @default(false)
   createdAt   DateTime      @default(now())
 
   @@index([ticketId, createdAt])
+}
+
+model CustomerNotification {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+  kind String @db.VarChar(40)
+  resourceId String
+  readAt DateTime?
+  createdAt DateTime @default(now())
+  @@index([userId, createdAt])
+}
+
+// Stop-only controls. No customer or assistant API may enable services.
+model ServiceControl {
+  key String @id @db.VarChar(40)
+  disabled Boolean @default(true)
+  reasonCode String @db.VarChar(40)
+  disabledBy String
+  updatedAt DateTime @updatedAt
 }
 
 model FeedbackItem {

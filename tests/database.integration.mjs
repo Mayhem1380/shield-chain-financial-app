@@ -4,6 +4,7 @@ import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import { billingIdentity } from '../lib/payments/runtime.mjs';
 import { revokeCurrentSession } from '../lib/auth/session-security.mjs';
 import { createSfWalletService } from '../lib/sf-wallet/service.mjs';
+import { createCustomerPlatform } from '../lib/customer-platform/service.mjs';
 
 // Never run this suite against a customer database. CI provisions a disposable instance.
 test('isolated PostgreSQL migration and billing behaviour', { skip: process.env.SHIELDCHAIN_DATABASE_TESTS !== '1' }, async t => {
@@ -71,8 +72,24 @@ test('isolated PostgreSQL migration and billing behaviour', { skip: process.env.
       await assert.rejects(service.exportCsv('foreign-fixture-user', tracked.id), /NOT_FOUND/);
       assert.match(await service.qrPayload(user.id, tracked.id), /^ethereum:0x/);
     });
+    await t.test('support records, internal-note filtering and notifications use real owned rows', async () => {
+      const service = createCustomerPlatform({ db: client });
+      const actor = { userId: user.id, user: { ...user, platformRole: 'CUSTOMER' }, mfaVerifiedAt: new Date() };
+      const input = { category: 'OTHER', subject: 'Database validation fixture', description: 'This fixture validates customer isolation.', requestKey: `support-${marker}` };
+      const [a, b] = await Promise.all([service.create(actor, input), service.create(actor, input)]);
+      assert.equal(a.id, b.id);
+      await client.supportMessage.create({ data: { ticketId: a.id, authorType: 'STAFF', internal: true, body: 'Internal test fixture only' } });
+      assert.equal((await service.detail(actor, a.id)).messages.length, 1);
+      await assert.rejects(service.detail({ ...actor, userId: 'foreign-fixture' }, a.id), /NOT_FOUND/);
+      const notices = await service.notifications(actor);
+      assert.equal(notices.notifications.length, 1);
+      await service.markRead(actor, { notificationId: notices.notifications[0].id });
+      assert.ok((await client.customerNotification.findUniqueOrThrow({ where: { id: notices.notifications[0].id } })).readAt);
+    });
   } finally {
     if (user) {
+      await client.customerNotification.deleteMany({ where: { userId: user.id } });
+      await client.supportTicket.deleteMany({ where: { userId: user.id } });
       await client.sfWalletTransaction.deleteMany({ where: { address: { userId: user.id } } });
       await client.sfWalletSnapshot.deleteMany({ where: { address: { userId: user.id } } });
       await client.sfWalletAddress.deleteMany({ where: { userId: user.id } });
