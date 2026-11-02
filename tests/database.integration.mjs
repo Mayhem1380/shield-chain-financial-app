@@ -5,6 +5,7 @@ import { billingIdentity } from '../lib/payments/runtime.mjs';
 import { revokeCurrentSession } from '../lib/auth/session-security.mjs';
 import { createSfWalletService } from '../lib/sf-wallet/service.mjs';
 import { createCustomerPlatform } from '../lib/customer-platform/service.mjs';
+import { createEarnReviewLedger } from '../lib/locked-earn/review-ledger.mjs';
 
 // Never run this suite against a customer database. CI provisions a disposable instance.
 test('isolated PostgreSQL migration and billing behaviour', { skip: process.env.SHIELDCHAIN_DATABASE_TESTS !== '1' }, async t => {
@@ -86,8 +87,18 @@ test('isolated PostgreSQL migration and billing behaviour', { skip: process.env.
       await service.markRead(actor, { notificationId: notices.notifications[0].id });
       assert.ok((await client.customerNotification.findUniqueOrThrow({ where: { id: notices.notifications[0].id } })).readAt);
     });
+    await t.test('daily review ledger records one audited non-payable observation under concurrent retries', async () => {
+      const plan = await client.earnReviewPlan.create({ data: { userId: user.id, principalAsset: 'ETH', rewardAsset: 'ETH', principalUnits: '2', annualRatePercent: '36.5', startsOn: new Date('2026-11-01T00:00:00Z'), endsOn: new Date('2026-11-03T00:00:00Z'), oracleSourceA: 'FIXTURE_A', oracleSourceB: 'FIXTURE_B', maximumDeviationBps: 0, reviewReference: 'ISOLATED_DB_FIXTURE_ONLY' } });
+      const ledger = createEarnReviewLedger({ db: client, now: () => Date.parse('2026-11-02T01:00:00Z'), loadClosingQuotes: async ({ asset }) => ['FIXTURE_A','FIXTURE_B'].map(source => ({ source, asset, currency: 'AUD', priceAud: '100', observedAt: '2026-11-02T00:00:00Z', evidenceHash: 'a'.repeat(64) })) });
+      const [a,b] = await Promise.all([ledger.observeDay(plan.id, '2026-11-01'), ledger.observeDay(plan.id, '2026-11-01')]);
+      assert.equal(a.id, b.id); assert.equal(a.status, 'NON_PAYABLE_REVIEW');
+      assert.equal(await client.earnDailyObservation.count({ where: { planId: plan.id } }), 1);
+      await assert.rejects(ledger.history('foreign-fixture', plan.id), /NOT_FOUND/);
+    });
   } finally {
     if (user) {
+      await client.earnDailyObservation.deleteMany({ where: { plan: { userId: user.id } } });
+      await client.earnReviewPlan.deleteMany({ where: { userId: user.id } });
       await client.customerNotification.deleteMany({ where: { userId: user.id } });
       await client.supportTicket.deleteMany({ where: { userId: user.id } });
       await client.sfWalletTransaction.deleteMany({ where: { address: { userId: user.id } } });

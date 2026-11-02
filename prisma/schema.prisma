@@ -66,6 +66,7 @@ model User {
   billingRole BillingRole @default(CUSTOMER)
   platformRole PlatformRole @default(CUSTOMER)
   notifications CustomerNotification[]
+  earnReviewPlans EarnReviewPlan[]
 
   @@unique([identityProvider, providerSubject])
 
@@ -210,6 +211,46 @@ model ServiceControl {
   reasonCode String @db.VarChar(40)
   disabledBy String
   updatedAt DateTime @updatedAt
+}
+
+// Engineering observation plans only. These do not represent deposits or liabilities.
+model EarnReviewPlan {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+  state String @default("REVIEW_ONLY")
+  principalAsset String @db.VarChar(16)
+  rewardAsset String @db.VarChar(16)
+  principalUnits String @db.VarChar(80)
+  annualRatePercent String @db.VarChar(40)
+  startsOn DateTime @db.Date
+  endsOn DateTime @db.Date
+  oracleSourceA String @db.VarChar(40)
+  oracleSourceB String @db.VarChar(40)
+  maximumDeviationBps Int
+  reviewReference String @db.VarChar(120)
+  createdAt DateTime @default(now())
+  observations EarnDailyObservation[]
+  @@index([userId, createdAt])
+}
+
+model EarnDailyObservation {
+  id String @id @default(cuid())
+  planId String
+  plan EarnReviewPlan @relation(fields: [planId], references: [id], onDelete: Restrict)
+  day DateTime @db.Date
+  configurationHash String @db.VarChar(64)
+  principalPriceAud String @db.VarChar(80)
+  rewardPriceAud String @db.VarChar(80)
+  currentValueAud String @db.VarChar(120)
+  indicativeRewardAud String @db.VarChar(120)
+  indicativeRewardUnits String @db.VarChar(120)
+  quoteEvidence Json
+  modelVersion String @default("current-value-daily-review-v1")
+  status String @default("NON_PAYABLE_REVIEW")
+  createdAt DateTime @default(now())
+  @@unique([planId, day])
+  @@index([planId, createdAt])
 }
 
 model FeedbackItem {
