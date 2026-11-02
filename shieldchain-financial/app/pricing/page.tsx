@@ -1,0 +1,6 @@
+import Link from 'next/link';
+import PremiumTerms from '@/app/components/premium-terms';
+
+export default function PricingPage() {
+  return <main className="workspace-page"><header className="workspace-header"><div><h1>Free education and Premium software</h1><p>Choose the educational tools that suit you. No trading profits or financial returns are promised.</p></div><Link href="/">ShieldChain Financial</Link></header><section className="workspace-grid" aria-label="Software access options"><article className="dash-panel"><h2>Free education</h2><p>Free access to the Beginner Handbook and basic educational features. A paid subscription is not required.</p><Link href="/handbook">Open the Beginner Handbook</Link><p><Link href="/risk-lab">Use the basic educational calculator</Link></p></article><article className="dash-panel"><h2>Premium Software Access</h2><p><strong>AUD $9.95 per month</strong> · billed monthly</p><p>Enhanced calculators, educational analytics and premium dashboard features.</p><p>Pricing is owner-approved. Provider eligibility and verification remain pending, and live activation has not been authorised.</p><button className="button" type="button" disabled>Live subscriptions not yet available</button><p><Link href="/billing">Existing customer billing and cancellation</Link></p></article></section><PremiumTerms /></main>;
+}

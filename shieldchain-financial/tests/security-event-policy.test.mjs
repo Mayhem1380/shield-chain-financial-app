@@ -1,0 +1,9 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { buildSecurityEvent, redactForSecurityLog } from '../lib/security-event-policy.mjs';
+const base = { type: 'ACCESS_DENIED', correlationId: 'req_12345678', actorId: 'user_123', metadata: { route: 'ACCOUNT', decision: 'DENY', retry: 2, password: 'dont-log', email: 'person@example.com' } };
+test('builds a stable safe event envelope', () => { const r = buildSecurityEvent(base, { now: 0 }); assert.equal(r.allowed, true); assert.equal(r.event.occurredAt, '1970-01-01T00:00:00.000Z'); assert.equal(r.event.metadata.route, 'ACCOUNT'); assert.equal('password' in r.event.metadata, false); assert.equal('email' in r.event.metadata, false); });
+test('rejects unknown event types and malformed correlation IDs', () => { assert.equal(buildSecurityEvent({ ...base, type: 'LOGIN_SECRET' }).code, 'EVENT_TYPE_NOT_ALLOWED'); assert.equal(buildSecurityEvent({ ...base, correlationId: 'bad' }).code, 'CORRELATION_ID_INVALID'); });
+test('rejects arbitrary or oversized metadata', () => { assert.equal(buildSecurityEvent({ ...base, metadata: { route: 'contains spaces and arbitrary content' } }).code, 'METADATA_VALUE_INVALID'); assert.equal(buildSecurityEvent({ ...base, metadata: Object.fromEntries(Array.from({ length: 13 }, (_, i) => [`k${i}`, i])) }).code, 'METADATA_TOO_LARGE'); });
+test('redacts sensitive keys and omits nested objects', () => { const r = redactForSecurityLog({ email: 'a@b.com', accessToken: 'abc', route: 'X' , request: { secret: 'x' }, message: 'private' }); assert.equal(r.email, '[REDACTED]'); assert.equal(r.accessToken, '[REDACTED]'); assert.equal(r.route, 'X' ); assert.equal(r.request, '[OMITTED_OBJECT]'); assert.equal(r.message, '[REDACTED]'); });
+test('handles invalid log input safely', () => { assert.equal(redactForSecurityLog(null), '[REDACTED]'); });

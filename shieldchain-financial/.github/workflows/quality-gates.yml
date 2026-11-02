@@ -1,0 +1,77 @@
+name: ShieldChain quality gates
+
+on:
+  pull_request:
+  push:
+    branches: [main, master]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: quality-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: validation
+          POSTGRES_PASSWORD: validation
+          POSTGRES_DB: shieldchain_validation
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U validation -d shieldchain_validation"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgresql://validation:validation@127.0.0.1:5432/shieldchain_validation
+      PAYMENTS_MODE: disabled
+      PAYMENTS_LIVE_ENABLED: 'false'
+      NEXT_TELEMETRY_DISABLED: '1'
+      SHIELDCHAIN_VERIFY_BUILD: '1'
+      SHIELDCHAIN_REQUIRE_WALLET_DEPENDENCIES: '1'
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund --ignore-scripts
+      - name: Policy regression tests
+        run: npm run test:policy
+      - name: CI contract preflight
+        run: npm run ci:contract
+      - name: Generate Prisma client
+        run: npm run db:generate
+      - name: Validate Prisma schema
+        run: npm run db:validate
+      - name: Real checksum and QR library round-trip tests
+        run: node tests/sf-wallet.dependencies.mjs
+      - name: Apply generated schema only to disposable PostgreSQL
+        run: |
+          mkdir -p .verification
+          npx --no-install prisma migrate diff --from-empty --to-schema-datamodel prisma/schema.prisma --script > .verification/ci-initial-schema.sql
+          npx --no-install prisma db execute --file .verification/ci-initial-schema.sql --url "$DATABASE_URL"
+          npx --no-install prisma migrate diff --from-url "$DATABASE_URL" --to-schema-datamodel prisma/schema.prisma --exit-code
+      - name: PostgreSQL transaction and session integration tests
+        run: node tests/database.integration.mjs
+        env:
+          SHIELDCHAIN_DATABASE_TESTS: '1'
+      - name: Static project preflight
+        run: npm run preflight
+      - name: Database schema preflight
+        run: npm run db:preflight
+      - name: Security regression preflight
+        run: npm run security:preflight
+      - name: TypeScript check
+        run: npm run typecheck
+      - name: ESLint
+        run: npm run lint
+      - name: Production build
+        run: npm run build

@@ -1,0 +1,629 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum AccountStatus {
+  PENDING
+  ACTIVE
+  RESTRICTED
+  CLOSED
+}
+
+// Provision only through an approved operator process; never from customer inputs.
+enum PlatformRole {
+  CUSTOMER
+  SUPPORT
+  SECURITY
+  OPERATIONS
+  OWNER
+}
+
+enum AuditSeverity {
+  INFO
+  WARNING
+  HIGH
+  CRITICAL
+}
+
+enum ChallengeStatus {
+  DRAFT
+  ACTIVE
+  PASSED
+  FAILED
+  CANCELLED
+}
+
+model User {
+  id             String        @id @default(cuid())
+  email             String        @unique
+  displayName       String?
+  // Identity is delegated to an approved provider; do not store raw passwords here.
+  identityProvider  String?
+  providerSubject   String?
+  emailVerifiedAt   DateTime?
+  status            AccountStatus @default(PENDING)
+  mfaEnabled        Boolean       @default(false)
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  sessions          AuthSession[]
+  challenges        Challenge[]
+  auditEvents       AuditEvent[]
+  supportTickets    SupportTicket[]
+  feedbackItems     FeedbackItem[]
+  kycCases          KycCase[]
+  withdrawalRequests WithdrawalRequest[]
+  paymentOrders PaymentOrder[]
+  billingAccounts BillingAccount[]
+  premiumSubscriptions PremiumSubscription[]
+  sfWalletAddresses SfWalletAddress[]
+  sfWalletVault SfWalletVault?
+  sfExchangeConnections SfExchangeConnection[]
+  billingRole BillingRole @default(CUSTOMER)
+  platformRole PlatformRole @default(CUSTOMER)
+  notifications CustomerNotification[]
+  earnReviewPlans EarnReviewPlan[]
+
+  @@unique([identityProvider, providerSubject])
+
+  @@index([status, createdAt])
+}
+
+
+// Application sessions store only a digest of a high-entropy opaque token.
+// A trusted authentication adapter must create/revoke these; never accept raw tokens from the DB.
+model AuthSession {
+  id            String    @id @default(cuid())
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash     String    @unique
+  createdAt     DateTime  @default(now())
+  expiresAt     DateTime
+  lastSeenAt    DateTime?
+  revokedAt     DateTime?
+  userAgentHash String?
+  // Set only by a trusted identity adapter after an actual MFA challenge.
+  mfaVerifiedAt DateTime?
+
+  @@index([userId, expiresAt])
+  @@index([expiresAt, revokedAt])
+}
+
+// This represents a simulated challenge configuration, not customer money.
+model Challenge {
+  id                 String          @id @default(cuid())
+  userId             String
+  user               User            @relation(fields: [userId], references: [id], onDelete: Restrict)
+  status             ChallengeStatus @default(DRAFT)
+  simulatedStart     Decimal         @db.Decimal(20, 8)
+  targetPercent      Decimal         @db.Decimal(8, 4)
+  dailyLossLimitPct  Decimal         @db.Decimal(8, 4)
+  overallLossLimitPct Decimal        @db.Decimal(8, 4)
+  rulesVersion       String
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+
+  @@index([userId, status])
+}
+
+// Append-only audit trail. Application policy must prohibit update/delete for normal runtime roles.
+model AuditEvent {
+  id          String        @id @default(cuid())
+  actorUserId String?
+  actor       User?         @relation(fields: [actorUserId], references: [id], onDelete: SetNull)
+  action      String
+  resource    String
+  resourceId  String?
+  severity    AuditSeverity @default(INFO)
+  requestId   String?
+  ipHash      String?
+  metadata    Json?
+  createdAt   DateTime      @default(now())
+
+  @@index([createdAt])
+  @@index([actorUserId, createdAt])
+  @@index([resource, resourceId])
+}
+
+
+enum SupportTicketStatus {
+  OPEN
+  TRIAGED
+  WAITING_FOR_CUSTOMER
+  ESCALATED
+  RESOLVED
+  CLOSED
+}
+
+enum SupportPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+enum SupportCategory {
+  ACCOUNT_ACCESS
+  SECURITY
+  EXCHANGE
+  WALLET
+  CHALLENGE
+  PAYMENTS
+  FEEDBACK
+  OTHER
+}
+
+// Support data must be access-controlled. Security/financial cases should be restricted to trained staff.
+model SupportTicket {
+  id             String              @id @default(cuid())
+  userId         String?
+  user           User?               @relation(fields: [userId], references: [id], onDelete: SetNull)
+  reference      String              @unique
+  category       SupportCategory
+  status         SupportTicketStatus @default(OPEN)
+  priority       SupportPriority     @default(NORMAL)
+  subject        String              @db.VarChar(120)
+  requestKey     String?             @db.VarChar(100)
+  requestHash    String?             @db.VarChar(64)
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  firstResponseAt DateTime?
+  resolvedAt     DateTime?
+  messages       SupportMessage[]
+
+  @@index([status, priority, createdAt])
+  @@index([userId, createdAt])
+  @@unique([userId, requestKey])
+}
+
+model SupportMessage {
+  id          String        @id @default(cuid())
+  ticketId    String
+  ticket      SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  authorType  String        // Enforce allowed values in application policy (CUSTOMER, STAFF, SYSTEM).
+  authorUserId String?
+  body        String        @db.VarChar(5000)
+  internal    Boolean       @default(false)
+  createdAt   DateTime      @default(now())
+
+  @@index([ticketId, createdAt])
+}
+
+model CustomerNotification {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+  kind String @db.VarChar(40)
+  resourceId String
+  readAt DateTime?
+  createdAt DateTime @default(now())
+  @@index([userId, createdAt])
+}
+
+// Stop-only controls. No customer or assistant API may enable services.
+model ServiceControl {
+  key String @id @db.VarChar(40)
+  disabled Boolean @default(true)
+  reasonCode String @db.VarChar(40)
+  disabledBy String
+  updatedAt DateTime @updatedAt
+}
+
+// Engineering observation plans only. These do not represent deposits or liabilities.
+model EarnReviewPlan {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+  state String @default("REVIEW_ONLY")
+  principalAsset String @db.VarChar(16)
+  rewardAsset String @db.VarChar(16)
+  principalUnits String @db.VarChar(80)
+  annualRatePercent String @db.VarChar(40)
+  startsOn DateTime @db.Date
+  endsOn DateTime @db.Date
+  oracleSourceA String @db.VarChar(40)
+  oracleSourceB String @db.VarChar(40)
+  maximumDeviationBps Int
+  reviewReference String @db.VarChar(120)
+  createdAt DateTime @default(now())
+  observations EarnDailyObservation[]
+  @@index([userId, createdAt])
+}
+
+model EarnDailyObservation {
+  id String @id @default(cuid())
+  planId String
+  plan EarnReviewPlan @relation(fields: [planId], references: [id], onDelete: Restrict)
+  day DateTime @db.Date
+  configurationHash String @db.VarChar(64)
+  principalPriceAud String @db.VarChar(80)
+  rewardPriceAud String @db.VarChar(80)
+  currentValueAud String @db.VarChar(120)
+  indicativeRewardAud String @db.VarChar(120)
+  indicativeRewardUnits String @db.VarChar(120)
+  quoteEvidence Json
+  modelVersion String @default("current-value-daily-review-v1")
+  status String @default("NON_PAYABLE_REVIEW")
+  createdAt DateTime @default(now())
+  @@unique([planId, day])
+  @@index([planId, createdAt])
+}
+
+model FeedbackItem {
+  id          String   @id @default(cuid())
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  category    String   @db.VarChar(40)
+  rating      Int?
+  message     String   @db.VarChar(3000)
+  page        String?  @db.VarChar(120)
+  createdAt   DateTime @default(now())
+  triagedAt   DateTime?
+  status      String   @default("NEW") @db.VarChar(24)
+
+  @@index([status, createdAt])
+  @@index([userId, createdAt])
+}
+
+
+// Verification metadata only. Identity documents and biometric material must stay with an approved KYC provider.
+enum KycStatus {
+  NOT_STARTED
+  PENDING
+  NEEDS_REVIEW
+  APPROVED
+  REJECTED
+  EXPIRED
+}
+
+model KycCase {
+  id                  String    @id @default(cuid())
+  userId              String
+  user                User      @relation(fields: [userId], references: [id], onDelete: Restrict)
+  status              KycStatus @default(NOT_STARTED)
+  provider            String?
+  providerCaseId      String?   @unique
+  countryCode         String?   @db.VarChar(2)
+  verificationLevel   String?   @db.VarChar(40)
+  legalNameMatch      Boolean?
+  dateOfBirthMatch    Boolean?
+  addressMatch       Boolean?
+  reviewedAt          DateTime?
+  expiresAt           DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  @@index([userId, status, updatedAt])
+  @@index([status, expiresAt])
+}
+
+enum WithdrawalStatus {
+  REQUESTED
+  IDENTITY_CHECK
+  RISK_REVIEW
+  APPROVED
+  PROCESSING
+  PAID
+  REJECTED
+  CANCELLED
+}
+
+// A withdrawal must pass server-side policy checks before approval. Never trust client-side flags.
+model WithdrawalRequest {
+  id                    String           @id @default(cuid())
+  userId                String
+  user                  User             @relation(fields: [userId], references: [id], onDelete: Restrict)
+  amount                Decimal          @db.Decimal(20, 8)
+  assetCode             String           @db.VarChar(20)
+  destinationReference  String?          @db.VarChar(200) // Prefer a provider token/reference; avoid unnecessary raw PII.
+  beneficiaryNameMatch  Boolean?
+  emailVerifiedAtCheck  DateTime?
+  kycCaseIdAtCheck      String?
+  status                WithdrawalStatus @default(REQUESTED)
+  holdReasonCode        String?          @db.VarChar(60)
+  providerReference     String?          @unique
+  requestedAt           DateTime         @default(now())
+  reviewedAt            DateTime?
+  completedAt           DateTime?
+  updatedAt             DateTime         @updatedAt
+
+  @@index([userId, status, requestedAt])
+  @@index([status, requestedAt])
+}
+
+// Merchant purchases only. This table is not an exchange or custody ledger.
+enum BillingRole {
+  CUSTOMER
+  REFUNDS
+  ADMIN
+}
+
+enum PaymentPurpose {
+  SOFTWARE_ACCESS
+  EDUCATION_SERVICE
+}
+
+enum PaymentOrderStatus {
+  CREATING
+  CHECKOUT
+  EXPIRED
+  PAID
+  PARTIALLY_REFUNDED
+  REFUNDED
+  REVIEW
+}
+
+enum PaymentRefundStatus {
+  REQUESTED
+  PENDING
+  SUCCEEDED
+  FAILED_REVIEW
+}
+
+model PaymentProduct {
+  code String @id
+  title String
+  purpose PaymentPurpose
+  priceId String
+  currency String @default("aud")
+  amountMinor Int
+  billingMode String @default("ONE_TIME")
+  interval String?
+  intervalCount Int?
+  termsVersion String?
+  pricingApprovalReference String?
+  live Boolean @default(false)
+  enabled Boolean @default(false)
+  providerApprovalReference String?
+  legalApprovalReference String?
+  approvedUntil DateTime?
+  orders PaymentOrder[]
+  premiumSubscriptions PremiumSubscription[]
+}
+
+// Stripe customer identity is server-owned, isolated by account and mode.
+model BillingAccount {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+  live Boolean
+  providerCustomerId String? @unique
+  createdAt DateTime @default(now())
+  subscriptions PremiumSubscription[]
+  @@unique([userId, live])
+}
+
+model PremiumSubscription {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+  accountId String
+  account BillingAccount @relation(fields: [accountId], references: [id], onDelete: Restrict)
+  productCode String
+  product PaymentProduct @relation(fields: [productCode], references: [code], onDelete: Restrict)
+  requestKey String @unique
+  // One outstanding/active subscription per user and mode. Released only on terminal state.
+  activeSlot String? @unique
+  priceId String
+  amountMinor Int
+  currency String
+  interval String
+  intervalCount Int
+  termsVersion String
+  termsAcceptedAt DateTime?
+  live Boolean
+  checkoutSessionId String? @unique
+  checkoutUrl String?
+  providerSubscriptionId String? @unique
+  providerStatus String @default("creating")
+  cancelAtPeriodEnd Boolean @default(false)
+  cancellationRequestedAt DateTime?
+  currentPeriodEnd DateTime?
+  currentInvoiceId String?
+  accessUntil DateTime?
+  riskHold Boolean @default(false)
+  lastReconciledAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  invoices BillingInvoice[]
+  events PremiumBillingEvent[]
+  @@index([userId, live])
+  @@index([lastReconciledAt])
+}
+
+model BillingInvoice {
+  id String @id @default(cuid())
+  subscriptionId String
+  subscription PremiumSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Restrict)
+  providerInvoiceId String @unique
+  paymentIntentId String? @unique
+  amountMinor Int
+  currency String
+  status String
+  periodStart DateTime?
+  periodEnd DateTime?
+  refundedMinor Int @default(0)
+  riskHold Boolean @default(false)
+  receiptUrl String?
+  hostedInvoiceUrl String?
+  paidAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  refund BillingInvoiceRefund?
+  @@index([subscriptionId, createdAt])
+}
+
+model BillingInvoiceRefund {
+  id String @id @default(cuid())
+  invoiceId String @unique
+  invoice BillingInvoice @relation(fields: [invoiceId], references: [id], onDelete: Restrict)
+  requestedBy String
+  reason String
+  providerRefundId String? @unique
+  status PaymentRefundStatus @default(REQUESTED)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PremiumBillingEvent {
+  eventId String @id
+  subscriptionId String
+  subscription PremiumSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Restrict)
+  eventType String
+  bodyHash String
+  receivedAt DateTime @default(now())
+  @@index([subscriptionId, receivedAt])
+}
+
+model PaymentOrder {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+  productCode String
+  product PaymentProduct @relation(fields: [productCode], references: [code], onDelete: Restrict)
+  requestKey String @unique
+  priceId String
+  amountMinor Int
+  currency String
+  live Boolean
+  status PaymentOrderStatus @default(CREATING)
+  checkoutSessionId String? @unique
+  checkoutUrl String?
+  paymentIntentId String? @unique
+  providerCustomerId String?
+  refundedMinor Int @default(0)
+  riskHold Boolean @default(false)
+  receiptUrl String?
+  lastReconciledAt DateTime?
+  paidAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  refund PaymentRefund?
+  events PaymentEvent[]
+  @@index([userId, createdAt])
+  @@index([status, lastReconciledAt])
+}
+
+// Durable reservation, one full refund per order; retries use the same provider key.
+model PaymentRefund {
+  id String @id @default(cuid())
+  orderId String @unique
+  order PaymentOrder @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  requestedBy String
+  reason String @db.VarChar(200)
+  status PaymentRefundStatus @default(REQUESTED)
+  providerRefundId String? @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Store identifiers and digest, not raw webhook bodies or card data.
+// Created in the same transaction as the reconciled order and audit record.
+model PaymentEvent {
+  eventId String @id
+  orderId String
+  order PaymentOrder @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  eventType String
+  bodyHash String
+  receivedAt DateTime @default(now())
+  @@index([orderId, receivedAt])
+}
+
+// Multi-instance fixed-window abuse control. Sensitive endpoints fail closed on DB errors.
+model PaymentRateLimit {
+  key String @id
+  count Int
+  expiresAt DateTime
+  @@index([expiresAt])
+}
+
+// SF Wallet is a separate read-only module. No private keys, seed phrases or passwords.
+model SfWalletAddress {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+  chainKey String
+  publicAddress String @db.VarChar(42)
+  label String @db.VarChar(60)
+  archivedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  snapshots SfWalletSnapshot[]
+  transactions SfWalletTransaction[]
+  @@unique([userId, chainKey, publicAddress])
+  @@index([userId, archivedAt])
+}
+
+model SfWalletSnapshot {
+  id String @id @default(cuid())
+  addressId String
+  address SfWalletAddress @relation(fields: [addressId], references: [id], onDelete: Restrict)
+  rawBalance String @db.VarChar(78)
+  symbol String
+  decimals Int
+  blockNumber String @db.VarChar(24)
+  blockHash String @db.VarChar(66)
+  verification String
+  observedAt DateTime
+  createdAt DateTime @default(now())
+  @@unique([addressId, blockHash])
+  @@index([addressId, observedAt])
+}
+
+model SfWalletTransaction {
+  id String @id @default(cuid())
+  addressId String
+  address SfWalletAddress @relation(fields: [addressId], references: [id], onDelete: Restrict)
+  hash String @db.VarChar(66)
+  blockNumber String @db.VarChar(24)
+  blockHash String @db.VarChar(66)
+  timestamp DateTime
+  fromAddress String @db.VarChar(42)
+  toAddress String? @db.VarChar(42)
+  rawValue String @db.VarChar(78)
+  status String
+  verification String
+  observedAt DateTime
+  @@unique([addressId, hash])
+  @@index([addressId, timestamp])
+}
+
+// Metadata and external secret references only; not cryptocurrency custody or a key store.
+model SfWalletVault {
+  id String @id @default(cuid())
+  userId String @unique
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+  status String @default("METADATA_ONLY")
+  createdAt DateTime @default(now())
+  exchanges SfExchangeConnection[]
+}
+
+model SfExchangeConnection {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+  vaultId String
+  vault SfWalletVault @relation(fields: [vaultId], references: [id], onDelete: Restrict)
+  provider String
+  secretReference String
+  scopeReviewReference String?
+  enabled Boolean @default(false)
+  lastNonce BigInt @default(0)
+  createdAt DateTime @default(now())
+  snapshots SfExchangeSnapshot[]
+  @@index([userId, enabled])
+}
+
+model SfExchangeSnapshot {
+  id String @id @default(cuid())
+  connectionId String
+  connection SfExchangeConnection @relation(fields: [connectionId], references: [id], onDelete: Restrict)
+  balances Json
+  scopeCheckedAt DateTime
+  observedAt DateTime
+  @@index([connectionId, observedAt])
+}

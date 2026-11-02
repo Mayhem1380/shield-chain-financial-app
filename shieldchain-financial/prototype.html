@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#07111f">
+<meta name="description" content="ShieldChain Financial — crypto and trading, made simpler. A responsive concept prototype.">
+<title>ShieldChain Financial | Crypto, made simpler</title>
+<style>
+:root{--bg:#050b14;--panel:#0b1727;--panel2:#102239;--line:#203b59;--blue:#18a7ff;--cyan:#46e3ff;--gold:#f5c86b;--ink:#f4f8ff;--muted:#9db0c8;--green:#55e0b0;--radius:20px;--shadow:0 20px 65px #0007}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:radial-gradient(ellipse at 75% -10%,#12385c 0,transparent 35%),var(--bg);color:var(--ink);font:16px/1.55 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}a{color:inherit;text-decoration:none}button,input,select,textarea{font:inherit}button,a,.clickable{touch-action:manipulation}button{cursor:pointer}img{max-width:100%;display:block}.wrap{width:min(1180px,calc(100% - 36px));margin:auto}.skip{position:absolute;left:-9999px}.skip:focus{left:12px;top:12px;background:#fff;color:#000;padding:12px;z-index:100}
+header{position:sticky;top:0;z-index:20;background:#050b14eF;backdrop-filter:blur(18px);border-bottom:1px solid #1a2d43}.nav{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:76px}.brand{display:flex;align-items:center;gap:10px;font-weight:900;letter-spacing:.06em}.brandmark{height:42px;width:42px;display:grid;place-items:center;border:2px solid var(--cyan);clip-path:polygon(50% 0,94% 20%,86% 76%,50% 100%,14% 76%,6% 20%);background:linear-gradient(145deg,#183f67,#06111e);color:#fff;text-shadow:0 0 12px var(--cyan);font-size:14px}.brand small{display:block;font-size:10px;letter-spacing:.26em;color:var(--cyan);font-weight:700}.navlinks{display:flex;align-items:center;gap:22px;color:#c5d3e5;font-size:14px}.navlinks a:hover{color:var(--cyan)}.navactions{display:flex;gap:8px;align-items:center}.btn{border:1px solid #315477;background:#10233a;color:#f6fbff;padding:12px 17px;border-radius:12px;font-weight:750;display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:.2s;min-height:44px}.btn:hover{transform:translateY(-1px);border-color:var(--cyan)}.btn.primary{background:linear-gradient(110deg,#087bd7,#13baff);border:0;box-shadow:0 7px 28px #009dff38}.btn.gold{background:linear-gradient(110deg,#9a6b20,#f5ce7b);border:0;color:#14100a}.btn.ghost{background:transparent}.menu-btn{display:none}
+.hero{padding:66px 0 44px;position:relative;overflow:hidden}.hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:36px;align-items:center}.eyebrow{display:inline-flex;align-items:center;gap:8px;color:var(--cyan);text-transform:uppercase;font-weight:800;font-size:12px;letter-spacing:.16em}.dot{height:7px;width:7px;border-radius:50%;background:var(--green);box-shadow:0 0 14px var(--green)}h1{font-size:clamp(2.6rem,5.5vw,5rem);line-height:.99;letter-spacing:-.055em;margin:18px 0 20px;max-width:720px}h1 span{background:linear-gradient(100deg,#fff 10%,#7bdfff 55%,#f3c86c 100%);color:transparent;background-clip:text}.lead{color:#bac9db;font-size:clamp(1rem,1.5vw,1.15rem);max-width:620px}.hero-cta{display:flex;gap:12px;flex-wrap:wrap;margin:26px 0 22px}.trustline{display:flex;flex-wrap:wrap;gap:16px;color:#a9bed4;font-size:12px}.trustline span{display:flex;align-items:center;gap:7px}.hero-visual{position:relative;min-height:440px;border:1px solid #2b5277;border-radius:28px;overflow:hidden;background:radial-gradient(circle at 50% 40%,#173b5c,#081321 70%);box-shadow:var(--shadow)}.hero-visual:before{content:"";position:absolute;inset:0;background:linear-gradient(130deg,#40c7ff12,transparent 42%,#f6c76712);pointer-events:none}.vault-ring{position:absolute;left:50%;top:45%;transform:translate(-50%,-50%);width:min(74%,360px);aspect-ratio:1;border-radius:50%;border:15px solid #536b7d;background:radial-gradient(circle,#1c2c3b 0 42%,#101b28 43% 55%,#5a6d7a 56% 60%,#172432 61%);box-shadow:inset 0 0 0 7px #101721,0 0 0 4px #9bb1c1,0 0 55px #15aaff4c;animation:glow 4s ease-in-out infinite}.vault-ring:before{content:"";position:absolute;inset:12%;border:3px solid #9eb6c5;border-radius:50%;background:repeating-conic-gradient(from 0deg,#3a4b5a 0 8deg,#182633 8deg 16deg);box-shadow:inset 0 0 0 7px #1b2b39}.vault-wheel{position:absolute;inset:29%;border:7px solid #7c929f;border-radius:50%;background:radial-gradient(circle,#152a3b 0 30%,#536a79 31% 36%,#1b2935 37%);z-index:1}.vault-wheel:before,.vault-wheel:after{content:"";position:absolute;left:calc(50% - 5px);top:-22%;width:10px;height:144%;background:linear-gradient(90deg,#536b79,#d4e0e6,#405361);border-radius:4px}.vault-wheel:after{transform:rotate(90deg)}.vault-label{position:absolute;left:50%;top:45%;transform:translate(-50%,-50%);z-index:2;font-weight:900;font-size:clamp(18px,2.3vw,27px);letter-spacing:.16em;color:#dff8ff;text-shadow:0 0 20px #22bfff;text-align:center;white-space:nowrap}.vault-label small{display:block;font-size:10px;letter-spacing:.24em;color:var(--cyan);margin-top:7px}.money-stack{position:absolute;bottom:30px;right:26px;width:115px;height:60px;transform:rotate(-8deg)}.money-stack i{position:absolute;bottom:calc(var(--i)*8px);left:calc(var(--i)*2px);width:100px;height:25px;background:linear-gradient(90deg,#82632e,#e8ca76 18%,#8b6a30 24%,#e2c36f 75%,#8e6b2d);border:1px solid #f7dc90;border-radius:3px;box-shadow:0 4px 0 #3e351e}.money-stack i:after{content:"SC";position:absolute;inset:4px 35px;border:1px solid #f8e7ac;border-radius:50%;font-size:9px;color:#fff4c4;text-align:center;font-weight:900}.visual-caption{position:absolute;left:22px;bottom:22px;color:#d0e1ef;font-size:12px}.scene-note{position:absolute;right:20px;top:18px;padding:8px 11px;border:1px solid #285378;border-radius:100px;background:#071625c9;color:#9de7ff;font-size:11px}
+@keyframes glow{0%,100%{filter:brightness(.92)}50%{filter:brightness(1.12)}}@keyframes fill{0%,20%{transform:translateY(8px);opacity:.78}60%,100%{transform:translateY(0);opacity:1}}@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;scroll-behavior:auto!important;transition:none!important}}
+section{padding:62px 0}.section-head{max-width:720px;margin-bottom:28px}.section-head h2{font-size:clamp(1.9rem,4vw,3rem);line-height:1.08;letter-spacing:-.035em;margin:10px 0 12px}.section-head p{color:var(--muted);margin:0}.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.card{padding:23px;border:1px solid #203b59;border-radius:var(--radius);background:linear-gradient(145deg,#0e1d30,#08111d);box-shadow:0 12px 35px #0002}.iconbox{height:45px;width:45px;display:grid;place-items:center;border-radius:13px;background:#102f4a;color:var(--cyan);font-size:21px;margin-bottom:17px}.card h3{margin:0 0 8px;font-size:18px}.card p{color:var(--muted);margin:0;font-size:14px}.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;counter-reset:step}.step{padding:22px;border:1px solid var(--line);border-radius:16px;background:#0a1625;counter-increment:step}.step:before{content:"0" counter(step);display:block;color:var(--cyan);font-weight:900;font-size:13px;letter-spacing:.12em;margin-bottom:14px}.step h3{margin:0 0 8px}.step p{margin:0;color:var(--muted);font-size:14px}
+.vision{background:linear-gradient(120deg,#0c1d31,#07101c 70%);border-block:1px solid #1a3653}.vision-grid{display:grid;grid-template-columns:1fr .8fr;gap:28px;align-items:center}.quote{font-size:clamp(1.7rem,3.6vw,3.3rem);font-weight:850;line-height:1.08;letter-spacing:-.04em}.quote em{font-style:normal;color:var(--cyan)}.vision p{color:var(--muted)}.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.stat{border:1px solid #284663;border-radius:15px;padding:17px;background:#07111f}.stat strong{display:block;color:var(--gold);font-size:20px}.stat span{color:#a8bad0;font-size:12px}
+.asset-row{display:flex;flex-wrap:wrap;gap:12px}.asset{display:flex;align-items:center;gap:10px;padding:12px 15px;border:1px solid #28435e;background:#0b1726;border-radius:14px;min-width:140px}.coin{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-weight:900;color:#08111c;background:linear-gradient(135deg,#f5c86b,#fff0b6)}.asset:nth-child(2) .coin{background:#a9baff}.asset:nth-child(3) .coin{background:#5de0bf}.asset:nth-child(4) .coin{background:#83e6e8}.asset small{display:block;color:var(--muted);font-size:11px}.note{color:#859ab1;font-size:12px;margin-top:15px}
+.founder{display:grid;grid-template-columns:.8fr 1.2fr;gap:26px;align-items:center}.founder-art{border:1px solid #2c5071;border-radius:22px;overflow:hidden;background:#0b1726;min-height:280px;display:flex;align-items:center;justify-content:center}.founder-art img{width:100%;height:100%;object-fit:cover}.founder-placeholder{padding:30px;text-align:center;color:#9fb4ca}.founder h2{font-size:clamp(1.8rem,3vw,2.8rem);margin:8px 0 14px}.founder p{color:var(--muted)}
+.feedback-grid{display:grid;grid-template-columns:.8fr 1.2fr;gap:24px;align-items:start}.feedback-copy{padding:26px;border-radius:20px;background:linear-gradient(140deg,#12314f,#091523);border:1px solid #244d70}.feedback-copy h2{margin-top:0}.feedback-copy p{color:#afc2d7}.form{padding:24px;border:1px solid var(--line);border-radius:20px;background:#0a1625}.field{display:flex;flex-direction:column;gap:7px;margin-bottom:15px}.field label{font-size:13px;color:#d8e5f4;font-weight:700}.field input,.field select,.field textarea{width:100%;border:1px solid #2a4560;background:#050e18;color:#fff;border-radius:11px;padding:12px 13px;min-height:46px}.field textarea{min-height:120px;resize:vertical}.field input:focus,.field select:focus,.field textarea:focus{outline:2px solid var(--cyan);outline-offset:1px}.form-status{color:var(--green);font-size:13px;margin-top:12px;min-height:20px}.help-fab{position:fixed;right:18px;bottom:18px;z-index:30;border:0;border-radius:999px;padding:14px 18px;background:linear-gradient(110deg,#087bd7,#13baff);color:white;font-weight:850;box-shadow:0 12px 32px #0008;display:flex;align-items:center;gap:9px}.chat{position:fixed;z-index:40;right:18px;bottom:82px;width:min(365px,calc(100vw - 28px));height:min(510px,calc(100dvh - 115px));display:none;flex-direction:column;background:#091523;border:1px solid #315779;border-radius:20px;box-shadow:var(--shadow);overflow:hidden}.chat.open{display:flex}.chat-head{padding:15px;background:#102945;display:flex;justify-content:space-between;align-items:center}.chat-head strong{display:block}.chat-head small{color:#a9c0d8}.chat-body{padding:14px;overflow:auto;flex:1;display:flex;flex-direction:column;gap:10px}.bubble{padding:11px 13px;border-radius:13px;background:#11263b;color:#dbe9f7;font-size:13px;max-width:90%;align-self:flex-start}.bubble.user{background:#0b69aa;align-self:flex-end;color:white}.quick{display:flex;flex-wrap:wrap;gap:7px}.quick button{font-size:12px;border:1px solid #315779;border-radius:99px;background:#0b1b2d;color:#bdeaff;padding:8px 10px}.chat-form{display:flex;gap:8px;padding:12px;border-top:1px solid #203b59}.chat-form input{min-width:0;flex:1;background:#040b13;border:1px solid #29435b;border-radius:10px;color:white;padding:10px}.chat-form button{border:0;border-radius:10px;background:#138fdb;color:#fff;padding:0 14px;font-weight:800}
+footer{border-top:1px solid #1d354c;padding:30px 0 40px;color:#8da3bb;font-size:12px}.foot{display:flex;justify-content:space-between;gap:20px;align-items:flex-start;flex-wrap:wrap}.footlinks{display:flex;gap:16px;flex-wrap:wrap}.disclaimer{max-width:850px;margin-top:16px;color:#748ba3}
+@media(max-width:900px){.navlinks{display:none}.menu-btn{display:inline-flex}.navlinks.mobile-open{display:flex;position:absolute;left:0;right:0;top:76px;background:#07111f;border-bottom:1px solid #203b59;padding:18px;flex-direction:column;align-items:stretch;gap:15px}.hero-grid,.vision-grid,.founder,.feedback-grid{grid-template-columns:1fr}.hero{padding-top:42px}.hero-visual{min-height:380px}.cards{grid-template-columns:repeat(2,1fr)}.founder-art{max-height:420px}}
+@media(max-width:580px){.wrap{width:min(100% - 24px,1180px)}.nav{min-height:66px}.brandmark{height:36px;width:36px}.brand{font-size:13px}.brand small{font-size:9px}.navactions .login{display:none}.hero{padding:34px 0 20px}.hero-grid{gap:24px}h1{font-size:clamp(2.55rem,12vw,3.7rem)}.hero-visual{min-height:315px;border-radius:20px}.vault-ring{width:74%;border-width:11px}.vault-wheel{border-width:5px}.money-stack{transform:scale(.78) rotate(-8deg);transform-origin:bottom right;right:8px;bottom:18px}.visual-caption{left:13px;bottom:15px;max-width:60%}.scene-note{right:10px;top:10px;font-size:10px}.trustline{gap:10px}.cards,.steps{grid-template-columns:1fr}.card{padding:20px}.section{padding:45px 0}section{padding:46px 0}.stats{grid-template-columns:repeat(2,1fr)}.asset{flex:1;min-width:calc(50% - 8px)}.feedback-copy,.form{padding:19px}.help-fab{right:12px;bottom:12px;padding:13px 15px}.chat{right:10px;bottom:72px}.hero-cta .btn{flex:1}}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header>
+  <div class="wrap nav">
+    <a class="brand" href="#top" aria-label="ShieldChain Financial home"><span class="brandmark">SF</span><span>SHIELDCHAIN<small>FINANCIAL</small></span></a>
+    <nav class="navlinks" id="navlinks" aria-label="Main navigation">
+      <a href="#how">How it works</a><a href="#services">Services</a><a href="#security">Security</a><a href="#founder">Our story</a><a href="#feedback">Feedback</a>
+    </nav>
+    <div class="navactions"><a class="btn ghost login" href="#demo">Sign in</a><a class="btn primary" href="#start">Start here <span aria-hidden="true">↗</span></a><button class="btn menu-btn" id="menuBtn" aria-expanded="false" aria-controls="navlinks">☰</button></div>
+  </div>
+</header>
+<main id="main">
+<section class="hero" id="top">
+ <div class="wrap hero-grid">
+  <div>
+   <div class="eyebrow"><span class="dot"></span> Crypto & trading, made simpler</div>
+   <h1>Less confusion.<br><span>More confidence.</span></h1>
+   <p class="lead">We're building ShieldChain Financial to make crypto and trading easier to understand, with clearer steps, transparent costs and security designed around people.</p>
+   <div class="hero-cta"><a class="btn primary" href="#start">Start here <span>→</span></a><a class="btn" href="#how">See how it works</a></div>
+   <div class="trustline"><span>◇ Clear explanations</span><span>◈ Security-conscious design</span><span>◎ Mobile friendly</span></div>
+  </div>
+  <div class="hero-visual" role="img" aria-label="Stylised steel vault with ShieldChain branding and a growing stack of gold-toned money">
+    <div class="scene-note">THE SHIELDCHAIN VISION</div><div class="vault-ring"><div class="vault-wheel"></div><div class="vault-label">START HERE<small>LEARN • REVIEW • PLAN</small></div></div>
+    <div class="money-stack" id="moneyStack"><i style="--i:0"></i><i style="--i:1"></i><i style="--i:2"></i><i style="--i:3"></i><i style="--i:4"></i></div>
+    <div class="visual-caption" id="vaultCaption">A clearer way forward.</div>
+  </div>
+ </div>
+</section>
+<section id="start">
+ <div class="wrap">
+  <div class="section-head"><div class="eyebrow">Your first steps</div><h2>Start here. We'll keep it simple.</h2><p>Whether you're new to crypto or already experienced, the goal is to help you understand what each step does before you take it.</p></div>
+  <div class="steps">
+   <article class="step"><h3>Explore the account preview</h3><p>See how future registration and sign-in may work. No real accounts are created in this prototype.</p></article>
+   <article class="step"><h3>Choose what you need</h3><p>Compare services, costs and rules in plain English before deciding whether a product is right for you.</p></article>
+   <article class="step"><h3>Explore sample tracking</h3><p>Preview how progress and transaction status could be displayed. No real transactions are connected.</p></article>
+  </div>
+ </div>
+</section>
+<section id="services">
+ <div class="wrap">
+  <div class="section-head"><div class="eyebrow">One clear place</div><h2>Professional tools. Simple explanations.</h2><p>Designed to make important information easy to find, without hiding the detail experienced users need.</p></div>
+  <div class="cards">
+   <article class="card"><div class="iconbox">▦</div><h3>Account dashboard</h3><p>A clear overview of account status, recent activity, required actions and service progress.</p></article>
+   <article class="card"><div class="iconbox">⌁</div><h3>Trading challenges</h3><p>Understand the rules, fees, targets and limits before participating. Simulated balances are clearly labelled.</p></article>
+   <article class="card"><div class="iconbox">◈</div><h3>Crypto services</h3><p>Planned wallet and payment features with clear network guidance, fees and confirmation steps.</p></article>
+   <article class="card"><div class="iconbox">▤</div><h3>Transaction tracking</h3><p>See whether a payment is pending, completed, failed or under review, with plain-language explanations.</p></article>
+   <article class="card"><div class="iconbox">✳</div><h3>AI help, with human backup</h3><p>Ask a question in everyday language. Sensitive account, security and payout issues are escalated appropriately.</p></article>
+   <article class="card"><div class="iconbox">◎</div><h3>Learning and insights</h3><p>Beginner-friendly guides and tools to help explain markets and risk—without promising results.</p></article>
+  </div>
+ </div>
+</section>
+<section class="vision">
+ <div class="wrap vision-grid">
+  <div><div class="eyebrow">The ShieldChain vision</div><div class="quote">Our ambition is to help set a new standard for <em>clearer, safer and simpler</em> crypto experiences.</div><p>We aim to build a trusted, accessible platform used around the world wherever our services are legally permitted. Trust must be earned through transparent terms, tested protections and reliable service—not slogans alone.</p></div>
+  <div class="stats"><div class="stat"><strong>Simple by design</strong><span>Plain language and guided steps</span></div><div class="stat"><strong>Clear costs</strong><span>Fees and rules shown upfront</span></div><div class="stat"><strong>Security first</strong><span>Controls designed to reduce risk</span></div><div class="stat"><strong>Always improving</strong><span>Customer feedback shapes the roadmap</span></div></div>
+ </div>
+</section>
+<section id="security">
+ <div class="wrap">
+  <div class="section-head"><div class="eyebrow">Security and transparency</div><h2>Confidence comes from what we can show.</h2><p>Security isn't a single feature or a promise of zero risk. Before any real-money service launches, its protections and limitations must be documented, tested and explained.</p></div>
+  <div class="cards">
+   <article class="card"><div class="iconbox">⛨</div><h3>Protect your sign-in</h3><p>Planned multi-factor authentication, account alerts and secure recovery options.</p></article>
+   <article class="card"><div class="iconbox">↗</div><h3>Check before you send</h3><p>Clear destination, network, amount and fee confirmations for supported transfers.</p></article>
+   <article class="card"><div class="iconbox">▣</div><h3>Know the status</h3><p>Transaction history, support routes and clear explanations of delays or reviews.</p></article>
+  </div>
+  <p class="note">These are design goals for the prototype, not a claim that live custody, insurance, licences or production security controls are already in place.</p>
+ </div>
+</section>
+<section id="assets">
+ <div class="wrap">
+  <div class="section-head"><div class="eyebrow">Digital assets</div><h2>Familiar names. Clear network information.</h2><p>Possible asset support will be confirmed only after provider, network, legal and security reviews. A ticker alone is not enough—always check the network.</p></div>
+  <div class="asset-row">
+   <div class="asset"><span class="coin">₿</span><div><strong>Bitcoin</strong><small>BTC · planned</small></div></div>
+   <div class="asset"><span class="coin">◆</span><div><strong>Ethereum</strong><small>ETH · planned</small></div></div>
+   <div class="asset"><span class="coin">₮</span><div><strong>Tether</strong><small>USDT · network TBC</small></div></div>
+   <div class="asset"><span class="coin">◎</span><div><strong>USD Coin</strong><small>USDC · network TBC</small></div></div>
+  </div>
+  <p class="note">Logos and asset names are used for identification only. Listing here does not mean deposits, trading or withdrawals are currently enabled or endorsed by the asset issuer.</p>
+ </div>
+</section>
+<section id="founder">
+ <div class="wrap founder">
+  <div class="founder-art" id="founderArt"><img src="assets/founder-yacht-concept.png" alt="ShieldChain Financial founder-and-family yacht promotional concept; illustrative artwork, not a documentary photograph"></div>
+  <div><div class="eyebrow">The reason we're building</div><h2>Built because trust matters.</h2><p>ShieldChain Financial is being developed with a personal motivation: to make crypto and trading easier to understand after seeing how damaging scams, fraud and confusing platforms can be.</p><p>The goal is a more transparent experience for individuals and families, with clearer information, straightforward tools and security measures that are explained honestly.</p><p><strong>Your security. Your family. Our mission.</strong></p><p class="note">Founder biography and any personal financial-loss claims should be reviewed and approved by the founder before publication.</p></div>
+ </div>
+</section>
+<section id="demo">
+ <div class="wrap">
+  <div class="section-head"><div class="eyebrow">Preview experience</div><h2>Your future dashboard, without the clutter.</h2><p>This is a non-financial demo view. It uses sample labels only and is not connected to a real account or market data.</p></div>
+  <div class="cards">
+   <article class="card"><div class="eyebrow">Account status</div><h3 style="margin-top:12px">Demo account</h3><p>You're viewing a preview. No money or trading account is connected.</p></article>
+   <article class="card"><div class="eyebrow">Next step</div><h3 style="margin-top:12px">Explore the platform</h3><p>Read the service descriptions and ask the help guide if anything is unclear.</p></article>
+   <article class="card"><div class="eyebrow">Recent activity</div><h3 style="margin-top:12px">No live transactions</h3><p>Live payments and wallets will be considered after checks and provider approval.</p></article>
+  </div>
+ </div>
+</section>
+<section id="feedback">
+ <div class="wrap feedback-grid">
+  <div class="feedback-copy"><div class="eyebrow">Help us improve</div><h2>Your feedback matters.</h2><p>Tell us what is confusing, what you'd like to see, or how we could make ShieldChain easier to use. Feedback helps shape the product roadmap.</p><p><strong>Real people. Clearer tools. A better future.</strong></p><p class="note">Prototype note: this form demonstrates the experience and does not send or store submissions yet.</p></div>
+  <form class="form" id="feedbackForm">
+   <div class="field"><label for="name">Name (optional)</label><input id="name" name="name" autocomplete="name" placeholder="How should we address you?"></div>
+   <div class="field"><label for="email">Email (optional)</label><input id="email" name="email" type="email" autocomplete="email" placeholder="you@example.com"></div>
+   <div class="field"><label for="topic">What is your feedback about?</label><select id="topic" name="topic"><option>General feedback</option><option>Ease of use</option><option>Security and trust</option><option>Trading challenges</option><option>Crypto wallet or payments</option><option>Customer support</option><option>Accessibility</option></select></div>
+   <div class="field"><label for="message">Your feedback or suggestion</label><textarea id="message" name="message" required placeholder="Tell us what you would improve…"></textarea></div>
+   <button class="btn primary" type="submit">Submit demo feedback →</button><div class="form-status" id="formStatus" role="status" aria-live="polite"></div>
+  </form>
+ </div>
+</section>
+</main>
+<footer>
+ <div class="wrap">
+  <div class="foot"><a class="brand" href="#top"><span class="brandmark">SF</span><span>SHIELDCHAIN<small>FINANCIAL</small></span></a><div class="footlinks"><a href="#services">Services</a><a href="#security">Security</a><a href="#feedback">Feedback</a><a href="#top">Back to top ↑</a></div></div>
+  <div class="disclaimer">Prototype only. ShieldChain Financial is not yet a live financial service. Cryptoassets and trading involve risk, including loss of capital. No profits or complete protection are guaranteed. Services, supported assets, fees, legal availability and security arrangements must be confirmed before launch.</div>
+ </div>
+</footer>
+<button class="help-fab" id="helpFab" aria-expanded="false" aria-controls="chat">✦ Ask Minute Man</button>
+<aside class="chat" id="chat" aria-label="Minute Man demo help">
+ <div class="chat-head"><div><strong>Minute Man · Help guide</strong><small>Prototype assistant · sample answers</small></div><button id="closeChat" class="btn ghost" aria-label="Close help">✕</button></div>
+ <div class="chat-body" id="chatBody"><div class="bubble">Hi! I'm the ShieldChain help guide demo. Ask me about getting started, security, fees or crypto networks. I won't ask for your password or recovery phrase.</div><div class="quick"><button data-question="How do I get started?">Get started</button><button data-question="How does security work?">Security</button><button data-question="What fees apply?">Fees</button><button data-question="What is a crypto network?">Crypto networks</button></div></div>
+ <form class="chat-form" id="chatForm"><input id="chatInput" aria-label="Ask Minute Man" placeholder="Ask in plain English…" autocomplete="off" required><button type="submit">Send</button></form>
+</aside>
+<script>
+const menuBtn=document.getElementById('menuBtn'), nav=document.getElementById('navlinks');
+menuBtn.addEventListener('click',()=>{const open=nav.classList.toggle('mobile-open');menuBtn.setAttribute('aria-expanded',String(open));menuBtn.textContent=open?'✕':'☰'});
+nav.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{nav.classList.remove('mobile-open');menuBtn.setAttribute('aria-expanded','false');menuBtn.textContent='☰'}));
+const stack=document.getElementById('moneyStack'), caption=document.getElementById('vaultCaption');
+let full=false;
+setInterval(()=>{full=!full;stack.querySelectorAll('i').forEach((el,i)=>{el.style.bottom=(full?i*8:i*2)+'px';el.style.opacity=full?'1':String(.65+i*.07)});caption.textContent=full?'A stronger future starts with clarity.':'A clearer way forward.'},3200);
+const fab=document.getElementById('helpFab'),chat=document.getElementById('chat'),closeChat=document.getElementById('closeChat');
+function toggleChat(force){const open=force??!chat.classList.contains('open');chat.classList.toggle('open',open);fab.setAttribute('aria-expanded',String(open));if(open)document.getElementById('chatInput').focus()}
+fab.addEventListener('click',()=>toggleChat());closeChat.addEventListener('click',()=>toggleChat(false));
+const chatBody=document.getElementById('chatBody');
+function addBubble(txt,who){const b=document.createElement('div');b.className='bubble'+(who?' user':'');b.textContent=txt;chatBody.appendChild(b);chatBody.scrollTop=chatBody.scrollHeight}
+function answer(q){const s=q.toLowerCase();if(s.includes('start')||s.includes('account'))return 'Start by reviewing the service descriptions, then create an account when registration is available. Use a unique password and turn on multi-factor authentication. This prototype does not create real accounts yet.';if(s.includes('security')||s.includes('safe')||s.includes('scam')||s.includes('hack'))return 'Good security uses several layers: multi-factor sign-in, account alerts, careful withdrawal checks, provider controls and tested recovery processes. No platform can guarantee zero risk. Never share a password, private key or recovery phrase.';if(s.includes('fee')||s.includes('cost')||s.includes('price'))return 'Fees will need to be displayed before you confirm a paid service or transaction. Exact pricing has not been set in this prototype, so please do not treat any example as a live quote.';if(s.includes('network')||s.includes('usdt')||s.includes('bitcoin')||s.includes('crypto'))return 'A crypto network is the blockchain used to send an asset. The same token can exist on different networks, and sending to an unsupported network can cause permanent loss. Check the asset, network, address and fee before confirming.';if(s.includes('payout')||s.includes('withdraw'))return 'Payout and withdrawal features are not live yet. A production version should show eligibility, destination, fees and status clearly, and route suspicious or disputed requests for review.';if(s.includes('human')||s.includes('person')||s.includes('support'))return 'A live service should provide a clear route to human support for account compromise, disputed transactions, complaints and payout problems. This demo is not connected to a support team yet.';return 'I can help explain the prototype, but I do not have access to real accounts or live transactions. Try asking about getting started, security, fees, crypto networks or payouts.'}
+document.getElementById('chatForm').addEventListener('submit',e=>{e.preventDefault();const input=document.getElementById('chatInput');const q=input.value.trim();if(!q)return;addBubble(q,true);input.value='';setTimeout(()=>addBubble(answer(q),false),180)});
+document.querySelectorAll('[data-question]').forEach(b=>b.addEventListener('click',()=>{addBubble(b.dataset.question,true);setTimeout(()=>addBubble(answer(b.dataset.question),false),160)}));
+document.getElementById('feedbackForm').addEventListener('submit',e=>{e.preventDefault();document.getElementById('formStatus').textContent='Thanks — this demo form is working locally, but it does not send or store feedback yet.';});
+</script>
+</body>
+</html>

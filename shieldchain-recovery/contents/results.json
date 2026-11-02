@@ -1,0 +1,161 @@
+{
+  "testsPassed": 249,
+  "results": [
+    {
+      "check": "tests/access-policy.test.mjs",
+      "exit": 0
+    },
+    {
+      "check": "tests/auth-flow-policy.test.mjs",
+      "exit": 0
+    },
+    {
+      "check": "tests/backup-recovery-policy.test.mjs",
+      "exit": 0
+    },
+    {
+      "check": "tests/ci-contract.test.mjs",
+      "exit": 0
+    },
+    {
+      "check": "tests/customer-platform.test.mjs",
+      "exit": 0
+    },
+    {
+      "check": "tests/data-retention-policy.test.mjs",
+      "exit": 0
+    },
+    {
+      "check": "tests/financial-calculators.test.mjs",
+      "exit": 0
+    },
+    {
+      "check": "tests/financial-operation-policy.test.mjs",
+      "exit": 0
+    },
+    {
+      "check": "tests/integration-security-flow.test.mjs",
+      "exit": 0
+    },
+    {
+      "check": "tests/launch-readiness-page.test.mjs",
+      "exit": 0
+    },
+    {
+      "check": "tests/locked-earn-review.test.mjs",
+      "exit": 0
+    },
+    {
+      "check": "tests/payments.test.mjs",
+      "exit": 0
+    },
+    {
+      "check": "tests/premium-subscriptions.test.mjs",
+      "exit": 0
+    },
+    {
+      "check": "tests/production-verification.test.mjs",
+      "exit": 0
+    },
+    {
+      "check": "tests/provider-webhook-policy.test.mjs",
+      "exit": 0
+    },
+    {
+      "check": "tests/rate-limit-policy.test.mjs",
+      "exit": 0
+    },
+    {
+      "check": "tests/release-gate-policy.test.mjs",
+      "exit": 0
+    },
+    {
+      "check": "tests/request-integrity-policy.test.mjs",
+      "exit": 0
+    },
+    {
+      "check": "tests/risk-lab-page.test.mjs",
+      "exit": 0
+    },
+    {
+      "check": "tests/security-event-policy.test.mjs",
+      "exit": 0
+    },
+    {
+      "check": "tests/server-authorization-boundary.test.mjs",
+      "exit": 0
+    },
+    {
+      "check": "tests/session-security.test.mjs",
+      "exit": 0
+    },
+    {
+      "check": "tests/sf-wallet.test.mjs",
+      "exit": 0
+    },
+    {
+      "check": "tests/status-page.test.mjs",
+      "exit": 0
+    },
+    {
+      "check": "tests/support-ticket-policy.test.mjs",
+      "exit": 0
+    },
+    {
+      "check": "tests/transparency-page.test.mjs",
+      "exit": 0
+    },
+    {
+      "check": "tests/verified-session-contract.test.mjs",
+      "exit": 0
+    },
+    {
+      "check": "tests/wallet-aggregator-boundary.test.mjs",
+      "exit": 0
+    },
+    {
+      "check": "tests/withdrawal-policy.test.mjs",
+      "exit": 0
+    },
+    {
+      "check": "preflight",
+      "exit": 0
+    },
+    {
+      "check": "schema-static",
+      "exit": 0
+    },
+    {
+      "check": "security-static",
+      "exit": 0
+    },
+    {
+      "check": "ci-static",
+      "exit": 0
+    },
+    {
+      "check": "wallet-dependencies",
+      "exit": 0
+    },
+    {
+      "check": "database",
+      "exit": 0
+    },
+    {
+      "check": "prisma",
+      "exit": 127
+    },
+    {
+      "check": "typescript",
+      "exit": 127
+    },
+    {
+      "check": "build",
+      "exit": 127
+    },
+    {
+      "check": "lint",
+      "exit": 127
+    }
+  ]
+}

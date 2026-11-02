@@ -1,0 +1,1 @@
+- [ShieldChain recovery guardrails](shieldchain-recovery-guardrails.md) — continue the original app; require approval before public deploys, financial activation, purchases, or paid resources.
