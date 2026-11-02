@@ -1,0 +1,16 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "Yd_xVEzIuyY7L-lenaIlB"
+uri = "file://.local/backups/SHIELDCHAIN-BRANCH-BACKUP-recovery-and-development.bundle"
+type = "unspecified"
+title = "ShieldChain recovery + development Git bundle"
+description = "Self-contained Git bundle containing recovery/payments-integration at c8c9edb883df50a54ce82cb751ab1e2212c474df and development/shieldchain-handbook-lint at 6188047d0f520418109c51b4740e79e60e3577fe. Verified as a complete-history bundle and restored both refs in a fresh bare repository."
+logical_id = "05ec680b-2230-4930-87fc-478bef26f369"
+content_hash = "sha256:525141c3aedc1e71a901b230624de554a50bba37a74afa373a69491727d855a3"
+size = 6928190
+mtime_ms = 1793643922106
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:6fceb0bd-7c5f-47fb-aaef-5f2dc7586166/05ec680b-2230-4930-87fc-478bef26f369/c401f4fb-8cd9-4a7b-b707-71d655bb8796"
+storage_version_token = "1793643928475042"
+content_type = "application/octet-stream"
