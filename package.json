@@ -42,14 +42,18 @@
     "premium:reconcile": "node scripts/reconcile-premium.mjs --run",
     "verify:production": "node scripts/verify-production.mjs",
     "db:validate": "prisma validate",
-    "test:wallet-boundary": "node tests/wallet-aggregator-boundary.test.mjs"
+    "test:wallet-boundary": "node tests/wallet-aggregator-boundary.test.mjs",
+    "test:sf-wallet": "node tests/sf-wallet.test.mjs"
   },
   "dependencies": {
     "@prisma/client": "^6.10.0",
     "next": "^15.3.3",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "zod": "^3.25.0"
+    "zod": "^3.25.0",
+    "viem": "^2.38.0",
+    "qrcode": "^1.5.4",
+    "jsqr": "^1.4.0"
   },
   "devDependencies": {
     "@types/node": "^22.15.0",
@@ -59,6 +63,7 @@
     "eslint-config-next": "^15.3.3",
     "prisma": "^6.10.0",
     "typescript": "^5.8.0",
-    "@eslint/eslintrc": "^3.3.1"
+    "@eslint/eslintrc": "^3.3.1",
+    "@types/qrcode": "^1.5.5"
   }
 }

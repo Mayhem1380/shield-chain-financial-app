@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import { billingIdentity } from '../lib/payments/runtime.mjs';
 import { revokeCurrentSession } from '../lib/auth/session-security.mjs';
+import { createSfWalletService } from '../lib/sf-wallet/service.mjs';
 
 // Never run this suite against a customer database. CI provisions a disposable instance.
 test('isolated PostgreSQL migration and billing behaviour', { skip: process.env.SHIELDCHAIN_DATABASE_TESTS !== '1' }, async t => {
@@ -61,8 +62,21 @@ test('isolated PostgreSQL migration and billing behaviour', { skip: process.env.
       assert.equal((await revokeCurrentSession(client, logout, { AUTH_ORIGIN: 'https://validation.invalid' })).revoked, true);
       await assert.rejects(billingIdentity(request, client), /AUTHENTICATION_REQUIRED/);
     });
+    await t.test('SF Wallet tracking creates only owned metadata and blocks foreign account access', async () => {
+      const service = createSfWalletService({ db: client });
+      const tracked = await service.track(user.id, { chainKey: 'ethereum', publicAddress: '0x' + '1'.repeat(40), label: 'Isolated database fixture' });
+      assert.equal(tracked.snapshots.length, 0);
+      assert.equal((await client.sfWalletVault.findUniqueOrThrow({ where: { userId: user.id } })).status, 'METADATA_ONLY');
+      await assert.rejects(service.history('foreign-fixture-user', tracked.id), /NOT_FOUND/);
+      await assert.rejects(service.exportCsv('foreign-fixture-user', tracked.id), /NOT_FOUND/);
+      assert.match(await service.qrPayload(user.id, tracked.id), /^ethereum:0x/);
+    });
   } finally {
     if (user) {
+      await client.sfWalletTransaction.deleteMany({ where: { address: { userId: user.id } } });
+      await client.sfWalletSnapshot.deleteMany({ where: { address: { userId: user.id } } });
+      await client.sfWalletAddress.deleteMany({ where: { userId: user.id } });
+      await client.sfWalletVault.deleteMany({ where: { userId: user.id } });
       const orders = await client.paymentOrder.findMany({ where: { userId: user.id }, select: { id: true } });
       await client.paymentEvent.deleteMany({ where: { orderId: { in: orders.map(order => order.id) } } });
       await client.paymentOrder.deleteMany({ where: { userId: user.id } });

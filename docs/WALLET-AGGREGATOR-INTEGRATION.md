@@ -1,5 +1,10 @@
 # Existing Replit Wallet Aggregator — integration boundary
 
+**Superseded integration direction:** the owner now approved a fresh modular SF Wallet
+inside ShieldChain. `/sf-wallet` does not use this adapter or either old application's
+source. This document/code remains preserved as historical work, disabled. Obtaining
+the old source is no longer a prerequisite for SF Wallet development.
+
 Published application URL supplied by the owner: https://wallet-aggregator.replit.app.
 This is recorded only as an application reference. It is not a source repository or an
 assumed API base URL and has not enabled a connection. A repository/export is pending.

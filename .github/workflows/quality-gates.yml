@@ -33,6 +33,7 @@ jobs:
       PAYMENTS_LIVE_ENABLED: 'false'
       NEXT_TELEMETRY_DISABLED: '1'
       SHIELDCHAIN_VERIFY_BUILD: '1'
+      SHIELDCHAIN_REQUIRE_WALLET_DEPENDENCIES: '1'
     steps:
       - name: Check out source
         uses: actions/checkout@v4
@@ -50,6 +51,8 @@ jobs:
         run: npm run db:generate
       - name: Validate Prisma schema
         run: npm run db:validate
+      - name: Real checksum and QR library round-trip tests
+        run: node tests/sf-wallet.dependencies.mjs
       - name: Apply generated schema only to disposable PostgreSQL
         run: |
           mkdir -p .verification

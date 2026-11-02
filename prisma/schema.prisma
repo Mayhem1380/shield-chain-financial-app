@@ -51,6 +51,9 @@ model User {
   paymentOrders PaymentOrder[]
   billingAccounts BillingAccount[]
   premiumSubscriptions PremiumSubscription[]
+  sfWalletAddresses SfWalletAddress[]
+  sfWalletVault SfWalletVault?
+  sfExchangeConnections SfExchangeConnection[]
   billingRole BillingRole @default(CUSTOMER)
 
   @@unique([identityProvider, providerSubject])
@@ -460,4 +463,91 @@ model PaymentRateLimit {
   count Int
   expiresAt DateTime
   @@index([expiresAt])
+}
+
+// SF Wallet is a separate read-only module. No private keys, seed phrases or passwords.
+model SfWalletAddress {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+  chainKey String
+  publicAddress String @db.VarChar(42)
+  label String @db.VarChar(60)
+  archivedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  snapshots SfWalletSnapshot[]
+  transactions SfWalletTransaction[]
+  @@unique([userId, chainKey, publicAddress])
+  @@index([userId, archivedAt])
+}
+
+model SfWalletSnapshot {
+  id String @id @default(cuid())
+  addressId String
+  address SfWalletAddress @relation(fields: [addressId], references: [id], onDelete: Restrict)
+  rawBalance String @db.VarChar(78)
+  symbol String
+  decimals Int
+  blockNumber String @db.VarChar(24)
+  blockHash String @db.VarChar(66)
+  verification String
+  observedAt DateTime
+  createdAt DateTime @default(now())
+  @@unique([addressId, blockHash])
+  @@index([addressId, observedAt])
+}
+
+model SfWalletTransaction {
+  id String @id @default(cuid())
+  addressId String
+  address SfWalletAddress @relation(fields: [addressId], references: [id], onDelete: Restrict)
+  hash String @db.VarChar(66)
+  blockNumber String @db.VarChar(24)
+  blockHash String @db.VarChar(66)
+  timestamp DateTime
+  fromAddress String @db.VarChar(42)
+  toAddress String? @db.VarChar(42)
+  rawValue String @db.VarChar(78)
+  status String
+  verification String
+  observedAt DateTime
+  @@unique([addressId, hash])
+  @@index([addressId, timestamp])
+}
+
+// Metadata and external secret references only; not cryptocurrency custody or a key store.
+model SfWalletVault {
+  id String @id @default(cuid())
+  userId String @unique
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+  status String @default("METADATA_ONLY")
+  createdAt DateTime @default(now())
+  exchanges SfExchangeConnection[]
+}
+
+model SfExchangeConnection {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+  vaultId String
+  vault SfWalletVault @relation(fields: [vaultId], references: [id], onDelete: Restrict)
+  provider String
+  secretReference String
+  scopeReviewReference String?
+  enabled Boolean @default(false)
+  lastNonce BigInt @default(0)
+  createdAt DateTime @default(now())
+  snapshots SfExchangeSnapshot[]
+  @@index([userId, enabled])
+}
+
+model SfExchangeSnapshot {
+  id String @id @default(cuid())
+  connectionId String
+  connection SfExchangeConnection @relation(fields: [connectionId], references: [id], onDelete: Restrict)
+  balances Json
+  scopeCheckedAt DateTime
+  observedAt DateTime
+  @@index([connectionId, observedAt])
 }

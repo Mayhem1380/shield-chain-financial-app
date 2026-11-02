@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 
 export function verificationEnvironment(inherited = process.env) {
   // Deliberately use a non-production DB target. Schema generation does not connect.
-  return { ...inherited, DATABASE_URL: 'postgresql://validation:validation@127.0.0.1:5432/shieldchain_validation', PAYMENTS_MODE: 'disabled', PAYMENTS_LIVE_ENABLED: 'false', NEXT_TELEMETRY_DISABLED: '1', SHIELDCHAIN_VERIFY_BUILD: '1' };
+  return { ...inherited, DATABASE_URL: 'postgresql://validation:validation@127.0.0.1:5432/shieldchain_validation', PAYMENTS_MODE: 'disabled', PAYMENTS_LIVE_ENABLED: 'false', NEXT_TELEMETRY_DISABLED: '1', SHIELDCHAIN_VERIFY_BUILD: '1', SHIELDCHAIN_REQUIRE_WALLET_DEPENDENCIES: '1' };
 }
 export function redactVerificationLog(text) {
   return text.replace(/\b(?:sk|rk)_(?:live|test)_[A-Za-z0-9_]+|\bwhsec_[A-Za-z0-9_]+|\bgh[pousr]_[A-Za-z0-9_]+/g, '[REDACTED]')
@@ -55,7 +55,8 @@ export async function verifyProduction({ install = false, reportDirectory } = {}
   if (!await stage('prisma-generate', process.execPath, [prisma, 'generate'])) return report;
   if (!await stage('schema-sql', process.execPath, [prisma, 'migrate', 'diff', '--from-empty', '--to-schema-datamodel', 'prisma/schema.prisma', '--script'], { sql: true })) return report;
   let passed = true;
-  passed = await stage('production-dependency-audit', 'npm', ['audit', '--omit=dev', '--audit-level=high', '--json', '--cache', join(root, '.verification', 'npm-cache')]);
+  passed = await stage('wallet-dependency-checks', process.execPath, ['tests/sf-wallet.dependencies.mjs']);
+  passed = await stage('production-dependency-audit', 'npm', ['audit', '--omit=dev', '--audit-level=high', '--json', '--cache', join(root, '.verification', 'npm-cache')]) && passed;
   for (const command of ['test:policy', 'preflight', 'db:preflight', 'security:preflight', 'ci:contract', 'typecheck', 'lint', 'build']) {
     passed = await stage(command.replaceAll(':', '-'), 'npm', ['run', command]) && passed;
   }
