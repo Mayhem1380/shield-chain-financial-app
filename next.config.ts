@@ -21,6 +21,8 @@ if (process.env.NODE_ENV === 'production') {
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  // Limit only this project's explicit verification build, not other Codex tasks.
+  experimental: process.env.SHIELDCHAIN_VERIFY_BUILD === '1' ? { cpus: 1 } : undefined,
   async headers() {
     return [
       {

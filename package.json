@@ -39,7 +39,10 @@
     "test:payments": "node tests/payments.test.mjs",
     "payments:reconcile": "node scripts/reconcile-payments.mjs --run",
     "test:premium": "node tests/premium-subscriptions.test.mjs",
-    "premium:reconcile": "node scripts/reconcile-premium.mjs --run"
+    "premium:reconcile": "node scripts/reconcile-premium.mjs --run",
+    "verify:production": "node scripts/verify-production.mjs",
+    "db:validate": "prisma validate",
+    "test:wallet-boundary": "node tests/wallet-aggregator-boundary.test.mjs"
   },
   "dependencies": {
     "@prisma/client": "^6.10.0",
@@ -55,6 +58,7 @@
     "eslint": "^9.28.0",
     "eslint-config-next": "^15.3.3",
     "prisma": "^6.10.0",
-    "typescript": "^5.8.0"
+    "typescript": "^5.8.0",
+    "@eslint/eslintrc": "^3.3.1"
   }
 }
