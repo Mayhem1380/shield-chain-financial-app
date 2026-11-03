@@ -1,1 +1,2 @@
 - [ShieldChain recovery guardrails](shieldchain-recovery-guardrails.md) — continue the original app; require approval before public deploys, financial activation, purchases, or paid resources.
+- [Asset delivery and Git refs](shieldchain-asset-delivery-git.md) — downloadable asset presentation can add a metadata commit; recheck branch tips and backup freshness afterward.
