@@ -14,3 +14,17 @@ mtime_ms = 1793643922106
 storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:6fceb0bd-7c5f-47fb-aaef-5f2dc7586166/05ec680b-2230-4930-87fc-478bef26f369/c401f4fb-8cd9-4a7b-b707-71d655bb8796"
 storage_version_token = "1793643928475042"
 content_type = "application/octet-stream"
+
+[[outputs]]
+id = "kB7iOK7H7EAIzTmf2_xyz"
+uri = "file://.local/backups/SHIELDCHAIN-BRANCH-BACKUP-recovery-and-development-8c6985d.bundle"
+type = "unspecified"
+title = "ShieldChain recovery and development Git bundle"
+description = "Verified, self-contained Git bundle with recovery/payments-integration at c8c9edb883df50a54ce82cb751ab1e2212c474df and development/shieldchain-handbook-lint at 8c6985dc5db5952b2cfce2c6917727b4fe8aade6. SHA-256: 45a0fe320f73eb478c821549edc1e7940dbab2ccfc60833b9db47e33c24203a2."
+logical_id = "9294ae5a-bb6a-4c71-ac7b-a15b582de086"
+content_hash = "sha256:45a0fe320f73eb478c821549edc1e7940dbab2ccfc60833b9db47e33c24203a2"
+size = 6930401
+mtime_ms = 1793683624440
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:6fceb0bd-7c5f-47fb-aaef-5f2dc7586166/9294ae5a-bb6a-4c71-ac7b-a15b582de086/281024a6-57ce-4fd9-a1ec-c268edf41407"
+storage_version_token = "1793683631443671"
+content_type = "application/octet-stream"
